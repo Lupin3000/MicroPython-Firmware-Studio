@@ -48,19 +48,19 @@ $ git clone https://github.com/Lupin3000/MicroPython-Firmware-Studio.git
 $ cd MicroPython-Firmware-Studio/
 
 # create Python virtualenv (optional but recommended)
-$ python3 -m venv venv
+$ python3 -m venv .venv
 
 # activate Python virtualenv
 $ source venv/bin/activate
 
 # update pip (optional)
-(venv) $ pip3 install -U pip
+(.venv) $ pip3 install -U pip
 
 # install required dependencies
-(venv) $ pip3 install -r requirements.txt
+(.venv) $ pip3 install -r requirements.txt
 
 # show packages (optional)
-(venv) $ pip3 freeze
+(.venv) $ pip3 freeze
 ```
 
 ## Usage
@@ -69,5 +69,12 @@ $ source venv/bin/activate
 
 ```shell
 # run application
-(venv) $ python3 main.py
+(.venv) $ python3 main.py
+```
+
+After MicroPython firmware flashing was successful you can use `rshell` to connect.
+
+```shell
+# connect to device
+(.venv) $ rshell -p <PORT>
 ```
