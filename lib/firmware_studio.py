@@ -25,7 +25,7 @@ class DeviceSelectionDialog(CTkToplevel):
     :ivar _DEVICE_SEARCH_PATH: The search path for detecting ESP devices.
     :type _DEVICE_SEARCH_PATH: str
     """
-    _WINDOW_TITLE: str = "Select the ESP Device"
+    _WINDOW_TITLE: str = "Select Device"
     _WINDOW_WIDTH: int = 400
     _WINDOW_HEIGHT: int = 200
     _DEVICE_SEARCH_PATH: str = '/dev/cu.usb*'
@@ -44,7 +44,7 @@ class DeviceSelectionDialog(CTkToplevel):
         self.resizable(False, False)
         self.selected_device: Optional[str] = None
 
-        CTkLabel(self, text="Select ESP device:").pack(pady=10)
+        CTkLabel(self, text="Select device:").pack(pady=10)
 
         devices = glob(self._DEVICE_SEARCH_PATH)
         if not devices:
@@ -123,10 +123,10 @@ class MicroPythonFirmwareStudio(CTk):
         self._top_frame = CTkFrame(self)
         self._top_frame.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 
-        self._top_label = CTkLabel(self._top_frame, text="ESP Device Path:", font=self._FONT_PATH)
+        self._top_label = CTkLabel(self._top_frame, text="Device Path:", font=self._FONT_PATH)
         self._top_label.pack(side="left", padx=10, pady=10)
 
-        self._selected_device = CTkButton(self._top_frame, text="Select ESP Device", command=self._set_device)
+        self._selected_device = CTkButton(self._top_frame, text="Select Device", command=self._set_device)
         self._selected_device.pack(side="right", padx=10, pady=10)
 
         # Left Top Frame
@@ -280,7 +280,7 @@ class MicroPythonFirmwareStudio(CTk):
         if selected_device:
             debug(f"Selected device: {selected_device}")
             self.__device_path = selected_device
-            self._top_label.configure(text=f'ESP Device Path: {self.__device_path}')
+            self._top_label.configure(text=f'Device Path: {self.__device_path}')
 
     def _set_chip(self, selection: str) -> None:
         """
