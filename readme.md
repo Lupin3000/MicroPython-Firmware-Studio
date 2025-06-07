@@ -1,5 +1,7 @@
 # MicroPython Firmware Studio
 
+![application_preview.jpg](img/application_preview.jpg)
+
 ## Important
 
 The owner of this project assumes no responsibility for any damage, issues, or legal consequences resulting from the use of this software. Use it at your own risk and ensure compliance with all applicable laws and regulations.
