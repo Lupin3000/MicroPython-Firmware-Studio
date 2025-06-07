@@ -1,6 +1,13 @@
 # MicroPython Firmware Studio
 
-![application_preview.jpg](img/application_preview.jpg)
+![License](https://img.shields.io/github/license/Lupin3000/MicroPython-Firmware-Studio)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
+![Last Commit](https://img.shields.io/github/last-commit/Lupin3000/MicroPython-Firmware-Studio)
+![Repo Size](https://img.shields.io/github/repo-size/Lupin3000/MicroPython-Firmware-Studio)
+
+## Preview
+
+![Screenshot](img/application_preview.jpg)
 
 The **MicroPython Firmware Studio** is a user-friendly application designed for the management and configuration of ESP microcontrollers. This software enables efficient firmware development and seamless flashing of MicroPython firmware onto ESP chips.
 
@@ -22,11 +29,12 @@ The latest [VCP driver](https://www.silabs.com/developer-tools/usb-to-uart-bridg
 
 The code is written and tested with the following requirements:
 
-| OS            | Python                                                                                                                        |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------|
-| macOS Sequoia | [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)                                           | 
-| macOS Sequoia | [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/) |
-| macOS Sequoia | [![Static](https://img.shields.io/badge/customtkinter-==5.2.2-green)](https://customtkinter.tomschimansky.com)                |
+| OS     | Python                                                                                                                        |
+|--------|-------------------------------------------------------------------------------------------------------------------------------|
+| macOS  | [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)                                           | 
+| macOS  | [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/) |
+| macOS  | [![Static](https://img.shields.io/badge/customtkinter-==5.2.2-green)](https://customtkinter.tomschimansky.com)                |
+| macOS  | [![Static](https://img.shields.io/badge/pillow-==11.2.1-green)](https://python-pillow.github.io)                              |
 
 ### Quick installation
 
