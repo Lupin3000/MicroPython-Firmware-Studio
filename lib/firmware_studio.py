@@ -73,8 +73,8 @@ class MicroPythonFirmwareStudio(CTk):
         self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
         self._refresh.pack(side="right", padx=10, pady=10)
 
-        self._device_dropdown = CTkOptionMenu(self._top_frame, width=150, command=self._set_device)
-        self._device_dropdown.pack(side="right", padx=10, pady=10)
+        self._device_option = CTkOptionMenu(self._top_frame, width=150, command=self._set_device)
+        self._device_option.pack(side="right", padx=10, pady=10)
 
         # Left Top Frame
         self._left_top_frame = CTkFrame(self)
@@ -128,7 +128,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
         self._chip_info.grid(row=1, column=3, padx=10, pady=5, sticky="w")
-        self._chip_option.configure(font=self._FONT_DESCRIPTION)
+        self._chip_info.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (firmware select)
         self._firmware_label = CTkLabel(self._right_frame, text='Step 2:')
@@ -143,16 +143,16 @@ class MicroPythonFirmwareStudio(CTk):
 
         self._firmware_info = CTkLabel(self._right_frame, text='Browse and select the firmware file to upload')
         self._firmware_info.grid(row=2, column=3, padx=10, pady=5, sticky="w")
-        self._firmware_btn.configure(font=self._FONT_DESCRIPTION)
+        self._firmware_info.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (baudrate select)
         self._baudrate_label = CTkLabel(self._right_frame, text='Step 3:')
         self._baudrate_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-        self._baudrate_dropdown = CTkOptionMenu(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
-        self._baudrate_dropdown.grid(row=3, column=1, padx=10, pady=5, sticky="w")
-        self._baudrate_dropdown.set("460800")
-        self._baudrate_dropdown.configure(command=self._set_baudrate)
+        self._baudrate_option = CTkOptionMenu(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
+        self._baudrate_option.grid(row=3, column=1, padx=10, pady=5, sticky="w")
+        self._baudrate_option.set("460800")
+        self._baudrate_option.configure(command=self._set_baudrate)
 
         self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._baudrate_checkbox.grid(row=3, column=2, padx=10, pady=5, sticky="w")
@@ -160,7 +160,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
         self._baudrate_info.grid(row=3, column=3, padx=10, pady=5, sticky="w")
-        self._baudrate_dropdown.configure(font=self._FONT_DESCRIPTION)
+        self._baudrate_info.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (sector select)
         self._sector_label = CTkLabel(self._right_frame, text='Step 4:')
@@ -175,7 +175,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
         self._sector_info.grid(row=4, column=3, padx=10, pady=5, sticky="w")
-        self._sector_input.configure(font=self._FONT_DESCRIPTION)
+        self._sector_info.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
@@ -208,7 +208,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         :return: None
         """
-        current_selection = self._device_dropdown.get()
+        current_selection = self._device_option.get()
         devices = glob(self._DEVICE_SEARCH_PATH)
 
         if not devices:
@@ -217,12 +217,12 @@ class MicroPythonFirmwareStudio(CTk):
             devices.insert(0, "Select Device")
 
         debug(f"Devices: {devices}")
-        self._device_dropdown.configure(values=devices)
+        self._device_option.configure(values=devices)
 
         if current_selection in devices:
-            self._device_dropdown.set(current_selection)
+            self._device_option.set(current_selection)
         else:
-            self._device_dropdown.set(devices[0])
+            self._device_option.set(devices[0])
             self._set_device(None)
 
     def _delete_console(self) -> None:
