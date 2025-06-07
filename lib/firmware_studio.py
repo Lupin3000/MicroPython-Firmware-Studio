@@ -408,8 +408,8 @@ class MicroPythonFirmwareStudio(CTk):
 
         chip = self.__selected_chip if self.__selected_chip else "auto"
         cmd = ["python", "-m", "esptool",
-               "--chip", chip,
-               "--port",
+               "-c", chip,
+               "-p",
                self.__device_path,
                command_name]
 
@@ -450,9 +450,9 @@ class MicroPythonFirmwareStudio(CTk):
             return
 
         cmd = ["python", "-m", "esptool",
-               '--port', self.__device_path,
-               '--chip', self.__selected_chip,
-               '--baud', str(self.__selected_baudrate),
+               '-p', self.__device_path,
+               '-c', self.__selected_chip,
+               '-b', str(self.__selected_baudrate),
                'write_flash', self._sector_input.get().strip(),
                self.__selected_firmware]
 
