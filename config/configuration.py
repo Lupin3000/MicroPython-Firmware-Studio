@@ -25,3 +25,15 @@ CONFIGURED_DEVICES: dict = {
         "url": "https://micropython.org/download/ESP32_GENERIC_C6/"
     }
 }
+OPERATING_SYSTEM: dict = {
+    "macOS": {
+        "name": "Darwin",
+        "device_path": "/dev/cu.usb*",
+        "search_path": "~/Downloads"
+    },
+    "Linux": {
+        "name": "linux",
+        "device_path": "/dev/ttyUSB*",
+        "search_path": "~/Downloads"
+    }
+}

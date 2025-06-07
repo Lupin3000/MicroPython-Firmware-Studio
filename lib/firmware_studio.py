@@ -6,7 +6,7 @@ from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
 from PIL import Image
 from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
-from config.config import CONFIGURED_DEVICES
+from config.configuration import CONFIGURED_DEVICES, OPERATING_SYSTEM
 
 
 logger = getLogger(__name__)
@@ -35,8 +35,8 @@ class MicroPythonFirmwareStudio(CTk):
     _FONT_PATH: tuple = ('Arial', 20, 'bold')
     _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
     _FONT_DESCRIPTION: tuple = ('Arial', 14)
-    _DEVICE_SEARCH_PATH: str = '/dev/cu.usb*'
-    _FIRMWARE_SEARCH_PATH: str = '~/Downloads'
+    _DEVICE_SEARCH_PATH: str = OPERATING_SYSTEM['macOS']['device_path']
+    _FIRMWARE_SEARCH_PATH: str = OPERATING_SYSTEM['macOS']['search_path']
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
