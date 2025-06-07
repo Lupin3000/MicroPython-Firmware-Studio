@@ -1,6 +1,7 @@
 # MicroPython Firmware Studio
 
 ![application_preview.jpg](img/application_preview.jpg)
+[![Github All Releases](https://img.shields.io/github/downloads/Lupin3000/MicroPython-Firmware-Studio/total.svg)](https://github.com/Lupin3000/MicroPython-Firmware-Studio/releases)
 
 The **MicroPython Firmware Studio** is a user-friendly application designed for the management and configuration of ESP microcontrollers. This software enables efficient firmware development and seamless flashing of MicroPython firmware onto ESP chips.
 
