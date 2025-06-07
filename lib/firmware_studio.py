@@ -94,7 +94,7 @@ class MicroPythonFirmwareStudio(CTk):
     _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
     _FONT_DESCRIPTION: tuple = ('Arial', 14)
     _FIRMWARE_SEARCH_PATH: str = '~/Downloads'
-    _BAUDRATE_OPTIONS: list = ["115200", "460800", "921600", "1500000"]
+    _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
         """
