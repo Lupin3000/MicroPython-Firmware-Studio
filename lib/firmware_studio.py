@@ -145,7 +145,6 @@ class MicroPythonFirmwareStudio(CTk):
 
         # Left Bottom Frame
         self._left_bottom_frame = CTkFrame(self)
-
         self._left_bottom_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
         self._left_bottom_frame.grid_columnconfigure(0, weight=1)
 
@@ -161,7 +160,7 @@ class MicroPythonFirmwareStudio(CTk):
         self._right_frame.grid_columnconfigure(0, weight=0)
         self._right_frame.grid_columnconfigure(1, weight=0)
 
-        self._right_label = CTkLabel(self._right_frame, text='Configuration', font=self._FONT_CATEGORY)
+        self._right_label = CTkLabel(self._right_frame, text='Flash Configuration', font=self._FONT_CATEGORY)
         self._right_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="w")
 
         # Right Frame (chip select)
@@ -224,15 +223,13 @@ class MicroPythonFirmwareStudio(CTk):
         self._sector_info = CTkLabel(self._right_frame, text='Set the write sector', font=self._FONT_DESCRIPTION)
         self._sector_info.grid(row=4, column=3, padx=10, pady=5, sticky="w")
 
+        # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
-        self._separator_canvas.grid(row=5, column=0, columnspan=4, sticky="ew", padx=10, pady=10)
+        self._separator_canvas.grid(row=5, columnspan=4, sticky="ew", padx=10, pady=10)
 
         # Right Frame (start firmware flash)
-        self._flash_label = CTkLabel(self._right_frame, text='Step 5:')
-        self._flash_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-
         self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware', command=self._flash_firmware)
-        self._flash_btn.grid(row=6, column=1, columnspan=3, padx=10, pady=5, sticky="w")
+        self._flash_btn.grid(row=6, columnspan=4, padx=10, pady=5, sticky="w")
 
         # Bottom Frame
         self._bottom_frame = CTkFrame(self)
@@ -449,7 +446,7 @@ class MicroPythonFirmwareStudio(CTk):
             error('No sector value provided.')
 
         if errors:
-            self._console_text.insert("end", f'[ERROR] {', '.join(errors)}\n')
+            self._console_text.insert("end", f'[ERROR] {", ".join(errors)}\n')
             return
 
         cmd = ["python", "-m", "esptool",
