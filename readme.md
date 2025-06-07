@@ -6,7 +6,7 @@ The **MicroPython Firmware Studio** is a user-friendly application designed for 
 
 ## Important
 
-The owner of this project assumes no responsibility for any damage, issues, or legal consequences resulting from the use of this software. Use it at your own risk and ensure compliance with all applicable laws and regulations.
+**MicroPython Firmware Studio is provided without any guarantee.** Use it at your own risk. The developer assumes no liability for any damage or legal consequences resulting from using the software. Please ensure compliance with all applicable laws and regulations when using this tool.
 
 ## Supported Devices
 
@@ -29,6 +29,8 @@ The code is written and tested with the following requirements:
 | macOS Sequoia | [![Static](https://img.shields.io/badge/customtkinter-==5.2.2-green)](https://customtkinter.tomschimansky.com)                |
 
 ### Quick installation
+
+> Clone the repository from GitHub, create a virtual Python environment, and install all required dependencies.
 
 ```shell
 # clone repository
@@ -54,6 +56,8 @@ $ source venv/bin/activate
 ```
 
 ## Usage
+
+> Start the application using the command in your terminal within the configured Python environment. `python3 main.py`
 
 ```shell
 # run application
