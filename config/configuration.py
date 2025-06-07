@@ -26,13 +26,11 @@ CONFIGURED_DEVICES: dict = {
     }
 }
 OPERATING_SYSTEM: dict = {
-    "macOS": {
-        "name": "Darwin",
+    "Darwin": {
         "device_path": "/dev/cu.usb*",
         "search_path": "~/Downloads"
     },
     "Linux": {
-        "name": "linux",
         "device_path": "/dev/ttyUSB*",
         "search_path": "~/Downloads"
     }

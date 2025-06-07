@@ -25,6 +25,24 @@ Supported devices include ESP chips in the variants ESP32, ESP32-S2, ESP32-S3, E
 
 The latest [VCP driver](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) needs to be installed.
 
+**Linux**
+
+In Linux systems you need to execute following commands (_eq. as root_):
+
+```shell
+# update system
+$ apt update && apt upgrade -y
+
+# install required Python modules
+$ apt install -y python3-venv python3-tk
+
+# enable dialout permissions
+$ usermod -aG dialout <USER>
+
+# verify user group (optional)
+$ groups <USER>
+```
+
 ### Minimum requirements
 
 The code is written and tested with the following requirements:
