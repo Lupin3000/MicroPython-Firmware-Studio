@@ -57,9 +57,7 @@ class MicroPythonFirmwareStudio(CTk):
         # Main Grid Configuration
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure((1, 2, 3), weight=1)
 
         # Top Frame
         self._top_frame = CTkFrame(self)
@@ -85,10 +83,10 @@ class MicroPythonFirmwareStudio(CTk):
         self._left_label.pack(padx=10, pady=10)
         self._left_label.configure(font=self._FONT_CATEGORY)
 
-        self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip_ID', command=self._get_chip_id)
+        self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID', command=self._get_chip_id)
         self._chip_info_btn.pack(padx=10, pady=5)
 
-        self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash_ID', command=self._get_flash_id)
+        self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID', command=self._get_flash_id)
         self._memory_info_btn.pack(padx=10, pady=5)
 
         # Left Bottom Frame
@@ -96,7 +94,7 @@ class MicroPythonFirmwareStudio(CTk):
         self._left_bottom_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
         self._left_bottom_frame.grid_columnconfigure(0, weight=1)
 
-        self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase Flash')
+        self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
         self._left_bottom_label.pack(padx=10, pady=10)
         self._left_bottom_label.configure(font=self._FONT_CATEGORY)
 
