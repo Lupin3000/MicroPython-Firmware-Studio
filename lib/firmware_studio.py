@@ -5,7 +5,7 @@ from subprocess import run, CalledProcessError
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
 from PIL import Image
-from customtkinter import CTk, CTkComboBox, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage
+from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
 from config.config import CONFIGURED_DEVICES
 
 
@@ -65,24 +65,25 @@ class MicroPythonFirmwareStudio(CTk):
         self._top_frame = CTkFrame(self)
         self._top_frame.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 
-        self._device_path_label = CTkLabel(self._top_frame, text="Device Path:", font=self._FONT_PATH)
+        self._device_path_label = CTkLabel(self._top_frame, text="Device Path:")
         self._device_path_label.pack(side="left", padx=10, pady=10)
+        self._device_path_label.configure(font=self._FONT_PATH)
 
         reload_img = CTkImage(light_image=Image.open('img/reload.png'))
         self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
         self._refresh.pack(side="right", padx=10, pady=10)
 
-        self._device_dropdown = CTkComboBox(self._top_frame, command=self._set_device)
+        self._device_dropdown = CTkOptionMenu(self._top_frame, width=150, command=self._set_device)
         self._device_dropdown.pack(side="right", padx=10, pady=10)
-        self._device_dropdown.bind("<Key>", lambda e: "break")
 
         # Left Top Frame
         self._left_top_frame = CTkFrame(self)
         self._left_top_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
         self._left_top_frame.grid_columnconfigure(0, weight=1)
 
-        self._left_label = CTkLabel(self._left_top_frame, text='Information', font=self._FONT_CATEGORY)
+        self._left_label = CTkLabel(self._left_top_frame, text='Information')
         self._left_label.pack(padx=10, pady=10)
+        self._left_label.configure(font=self._FONT_CATEGORY)
 
         self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip_ID', command=self._get_chip_id)
         self._chip_info_btn.pack(padx=10, pady=5)
@@ -95,8 +96,9 @@ class MicroPythonFirmwareStudio(CTk):
         self._left_bottom_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
         self._left_bottom_frame.grid_columnconfigure(0, weight=1)
 
-        self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase Flash', font=self._FONT_CATEGORY)
+        self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase Flash')
         self._left_bottom_label.pack(padx=10, pady=10)
+        self._left_bottom_label.configure(font=self._FONT_CATEGORY)
 
         self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash', command=self._erase_flash)
         self._erase_btn.pack(padx=10, pady=5)
@@ -107,54 +109,58 @@ class MicroPythonFirmwareStudio(CTk):
         self._right_frame.grid_columnconfigure(0, weight=0)
         self._right_frame.grid_columnconfigure(1, weight=0)
 
-        self._right_label = CTkLabel(self._right_frame, text='Flash Configuration', font=self._FONT_CATEGORY)
+        self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
         self._right_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="w")
+        self._right_label.configure(font=self._FONT_CATEGORY)
 
         # Right Frame (chip select)
         self._chip_label = CTkLabel(self._right_frame, text='Step 1:')
         self._chip_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
 
-        chip_options = ["Please Select"] + list(CONFIGURED_DEVICES.keys())
-        self._chip_dropdown = CTkComboBox(self._right_frame, values=chip_options, width=150)
-        self._chip_dropdown.grid(row=1, column=1, padx=10, pady=5, sticky="w")
-        self._chip_dropdown.set("Please Select")
-        self._chip_dropdown.configure(command=self._set_chip)
+        chip_options = ["Select Chip"] + list(CONFIGURED_DEVICES.keys())
+        self._chip_option = CTkOptionMenu(self._right_frame, values=chip_options, width=150)
+        self._chip_option.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+        self._chip_option.set("Select Chip")
+        self._chip_option.configure(command=self._set_chip)
 
         self._chip_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
-        self._chip_info = CTkLabel(self._right_frame, text='Select the required chip', font=self._FONT_DESCRIPTION)
+        self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
         self._chip_info.grid(row=1, column=3, padx=10, pady=5, sticky="w")
+        self._chip_option.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (firmware select)
         self._firmware_label = CTkLabel(self._right_frame, text='Step 2:')
         self._firmware_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
-        self._firmware_btn = CTkButton(self._right_frame, text='Select Firmware', command=self._set_firmware)
+        self._firmware_btn = CTkButton(self._right_frame, text='Select Firmware', width=150)
         self._firmware_btn.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        self._firmware_btn.configure(command=self._set_firmware)
 
         self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._firmware_checkbox.grid(row=2, column=2, padx=10, pady=5, sticky="w")
 
-        self._firmware_info = CTkLabel(self._right_frame, text='Select the local firmware', font=self._FONT_DESCRIPTION)
+        self._firmware_info = CTkLabel(self._right_frame, text='Browse and select the firmware file to upload')
         self._firmware_info.grid(row=2, column=3, padx=10, pady=5, sticky="w")
+        self._firmware_btn.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (baudrate select)
         self._baudrate_label = CTkLabel(self._right_frame, text='Step 3:')
         self._baudrate_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-        self._baudrate_dropdown = CTkComboBox(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
+        self._baudrate_dropdown = CTkOptionMenu(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
         self._baudrate_dropdown.grid(row=3, column=1, padx=10, pady=5, sticky="w")
         self._baudrate_dropdown.set("460800")
         self._baudrate_dropdown.configure(command=self._set_baudrate)
-        self._baudrate_dropdown.bind("<Key>", lambda e: "break")
 
         self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._baudrate_checkbox.grid(row=3, column=2, padx=10, pady=5, sticky="w")
         self._baudrate_checkbox.select()
 
-        self._baudrate_info = CTkLabel(self._right_frame, text='Define the baud rate', font=self._FONT_DESCRIPTION)
+        self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
         self._baudrate_info.grid(row=3, column=3, padx=10, pady=5, sticky="w")
+        self._baudrate_dropdown.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (sector select)
         self._sector_label = CTkLabel(self._right_frame, text='Step 4:')
@@ -167,8 +173,9 @@ class MicroPythonFirmwareStudio(CTk):
         self._sector_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
 
-        self._sector_info = CTkLabel(self._right_frame, text='Set the write sector', font=self._FONT_DESCRIPTION)
+        self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
         self._sector_info.grid(row=4, column=3, padx=10, pady=5, sticky="w")
+        self._sector_input.configure(font=self._FONT_DESCRIPTION)
 
         # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
@@ -183,11 +190,13 @@ class MicroPythonFirmwareStudio(CTk):
         self._bottom_frame.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
         self._bottom_frame.grid_columnconfigure(0, weight=1)
 
-        self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output', font=self._FONT_CATEGORY)
+        self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
         self._bottom_label.pack(padx=10, pady=10)
+        self._bottom_label.configure(font=self._FONT_CATEGORY)
 
         self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
         self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
+        self._console_text.bind("<Key>", lambda e: "break")
 
         # search for devices on the start
         self._search_devices()
@@ -268,7 +277,7 @@ class MicroPythonFirmwareStudio(CTk):
         """
         debug(f"Selected chip: {selection}")
 
-        if selection != "Please Select":
+        if selection != "Select Chip":
             self.__selected_chip = CONFIGURED_DEVICES[selection]["name"]
             self._sector_input.delete(0, "end")
             self._sector_input.insert(0, hex(CONFIGURED_DEVICES[selection]["write_flash"]))
