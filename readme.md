@@ -57,7 +57,7 @@ $ source venv/bin/activate
 
 ## Usage
 
-> Start the application using the command in your terminal within the configured Python environment. `python3 main.py`
+> Start the application using the command in your terminal within the configured Python environment.
 
 ```shell
 # run application
