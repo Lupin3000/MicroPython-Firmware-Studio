@@ -14,6 +14,10 @@ Supported devices include ESP chips in the variants ESP32, ESP32-S2, ESP32-S3, E
 
 ## Installation
 
+### Prerequisite
+
+The latest [VCP driver](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) needs to be installed.
+
 ### Minimum requirements
 
 The code is written and tested with the following requirements:
