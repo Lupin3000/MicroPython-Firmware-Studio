@@ -1,11 +1,12 @@
+from glob import glob
 from logging import getLogger, debug, error
-from config.config import CONFIGURED_DEVICES
-from customtkinter import CTk, CTkToplevel, CTkComboBox, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox
+from os.path import expanduser
+from subprocess import run, CalledProcessError
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
-from os.path import expanduser
-from glob import glob
-from subprocess import run, CalledProcessError
+from customtkinter import (CTk, CTkToplevel, CTkComboBox, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry,
+                           CTkCheckBox)
+from config.config import CONFIGURED_DEVICES
 
 
 logger = getLogger(__name__)
