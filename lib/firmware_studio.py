@@ -4,73 +4,12 @@ from os.path import expanduser
 from subprocess import run, CalledProcessError
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
-from customtkinter import (CTk, CTkToplevel, CTkComboBox, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry,
-                           CTkCheckBox)
+from PIL import Image
+from customtkinter import CTk, CTkComboBox, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage
 from config.config import CONFIGURED_DEVICES
 
 
 logger = getLogger(__name__)
-
-
-class DeviceSelectionDialog(CTkToplevel):
-    """
-    A dialog for selecting an ESP device from a list of detected devices.
-
-    :ivar _WINDOW_TITLE: The title of the dialog window.
-    :type _WINDOW_TITLE: str
-    :ivar _WINDOW_WIDTH: The width of the dialog window in pixels.
-    :type _WINDOW_WIDTH: int
-    :ivar _WINDOW_HEIGHT: The height of the dialog window in pixels.
-    :type _WINDOW_HEIGHT: int
-    :ivar _DEVICE_SEARCH_PATH: The search path for detecting ESP devices.
-    :type _DEVICE_SEARCH_PATH: str
-    """
-    _WINDOW_TITLE: str = "Select Device"
-    _WINDOW_WIDTH: int = 400
-    _WINDOW_HEIGHT: int = 200
-    _DEVICE_SEARCH_PATH: str = '/dev/cu.usb*'
-
-    def __init__(self, parent: CTk):
-        """
-        A dialog window for selecting an ESP device from a list of available devices.
-
-        :param parent: The parent widget to which this dialog window is attached.
-        :type parent: CTk
-        """
-        super().__init__(parent)
-
-        self.title(self._WINDOW_TITLE)
-        self.geometry(f'{self._WINDOW_WIDTH}x{self._WINDOW_HEIGHT}')
-        self.resizable(False, False)
-        self.selected_device: Optional[str] = None
-
-        CTkLabel(self, text="Select device:").pack(pady=10)
-
-        devices = glob(self._DEVICE_SEARCH_PATH)
-        if not devices:
-            devices = ["No devices found"]
-
-        self.device_combo = CTkComboBox(self, values=devices, width=300)
-        self.device_combo.pack(pady=10)
-        if devices:
-            self.device_combo.set(devices[0])
-
-        select_button = CTkButton(self, text="Select", command=self._on_select)
-        select_button.pack(pady=10)
-
-    def _on_select(self) -> None:
-        """
-        Handles the selection of a device from a dropdown menu, updates the selected
-        device attribute if a valid device is chosen, and destroys the current context.
-
-        :return: None
-        """
-        device = self.device_combo.get()
-
-        if device != "No devices found":
-            self.selected_device = device
-
-        self.destroy()
 
 
 class MicroPythonFirmwareStudio(CTk):
@@ -85,6 +24,8 @@ class MicroPythonFirmwareStudio(CTk):
     :type _FONT_CATEGORY: tuple
     :ivar _FONT_DESCRIPTION: The font style for the description labels.
     :type _FONT_DESCRIPTION: tuple
+    :ivar _DEVICE_SEARCH_PATH: The default search path for device serial ports.
+    :type _DEVICE_SEARCH_PATH: str
     :ivar _FIRMWARE_SEARCH_PATH: The default search path for firmware files.
     :type _FIRMWARE_SEARCH_PATH: str
     :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
@@ -94,6 +35,7 @@ class MicroPythonFirmwareStudio(CTk):
     _FONT_PATH: tuple = ('Arial', 20, 'bold')
     _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
     _FONT_DESCRIPTION: tuple = ('Arial', 14)
+    _DEVICE_SEARCH_PATH: str = '/dev/cu.usb*'
     _FIRMWARE_SEARCH_PATH: str = '~/Downloads'
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
@@ -123,11 +65,16 @@ class MicroPythonFirmwareStudio(CTk):
         self._top_frame = CTkFrame(self)
         self._top_frame.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 
-        self._top_label = CTkLabel(self._top_frame, text="Device Path:", font=self._FONT_PATH)
-        self._top_label.pack(side="left", padx=10, pady=10)
+        self._device_path_label = CTkLabel(self._top_frame, text="Device Path:", font=self._FONT_PATH)
+        self._device_path_label.pack(side="left", padx=10, pady=10)
 
-        self._selected_device = CTkButton(self._top_frame, text="Select Device", command=self._set_device)
-        self._selected_device.pack(side="right", padx=10, pady=10)
+        reload_img = CTkImage(light_image=Image.open('img/reload.png'))
+        self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
+        self._refresh.pack(side="right", padx=10, pady=10)
+
+        self._device_dropdown = CTkComboBox(self._top_frame, command=self._set_device)
+        self._device_dropdown.pack(side="right", padx=10, pady=10)
+        self._device_dropdown.bind("<Key>", lambda e: "break")
 
         # Left Top Frame
         self._left_top_frame = CTkFrame(self)
@@ -242,6 +189,33 @@ class MicroPythonFirmwareStudio(CTk):
         self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
         self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
 
+        # search for devices on the start
+        self._search_devices()
+
+    def _search_devices(self) -> None:
+        """
+        Updates the device dropdown menu with a list of available devices. If there are no
+        connected devices, sets "No devices found" as the only dropdown value.
+
+        :return: None
+        """
+        current_selection = self._device_dropdown.get()
+        devices = glob(self._DEVICE_SEARCH_PATH)
+
+        if not devices:
+            devices = ["No devices found"]
+        else:
+            devices.insert(0, "Select Device")
+
+        debug(f"Devices: {devices}")
+        self._device_dropdown.configure(values=devices)
+
+        if current_selection in devices:
+            self._device_dropdown.set(current_selection)
+        else:
+            self._device_dropdown.set(devices[0])
+            self._set_device(None)
+
     def _delete_console(self) -> None:
         """
         Deletes all the content from the console text box.
@@ -265,22 +239,24 @@ class MicroPythonFirmwareStudio(CTk):
             error_msg = e.stderr if e.stderr else str(e)
             self._console_text.insert("end", f'[ERROR]: {error_msg}')
 
-    def _set_device(self) -> None:
+    def _set_device(self, selected_device: Optional[str]) -> None:
         """
         Handles the selection of a device using a device selection dialog, updates the
         device path, and modifies the configuration label to display the new device path.
 
+        :param selected_device: The selected device path as a string.
+        :type selected_device: Optional[str]
         :return: None
         """
-        dialog = DeviceSelectionDialog(self)
-        self.wait_window(dialog)
+        debug(f"Selected device: {selected_device}")
 
-        selected_device = dialog.selected_device
-
-        if selected_device:
+        if selected_device and selected_device not in ("Select Device", "No devices found"):
             debug(f"Selected device: {selected_device}")
             self.__device_path = selected_device
-            self._top_label.configure(text=f'Device Path: {self.__device_path}')
+            self._device_path_label.configure(text=f"Device Path: {self.__device_path}")
+        else:
+            self.__device_path = None
+            self._device_path_label.configure(text="Device Path:")
 
     def _set_chip(self, selection: str) -> None:
         """
