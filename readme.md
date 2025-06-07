@@ -29,7 +29,7 @@ The latest [VCP driver](https://www.silabs.com/developer-tools/usb-to-uart-bridg
 
 The code is written and tested with the following requirements:
 
-| OS     | Python                                                                                                                        |
+| OS     | Python Module                                                                                                                 |
 |--------|-------------------------------------------------------------------------------------------------------------------------------|
 | macOS  | [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)                                           | 
 | macOS  | [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/) |
