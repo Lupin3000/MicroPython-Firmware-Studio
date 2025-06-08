@@ -1,7 +1,7 @@
 # MicroPython Firmware Studio
 
 ![License](https://img.shields.io/github/license/Lupin3000/MicroPython-Firmware-Studio)
-![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 ![Last Commit](https://img.shields.io/github/last-commit/Lupin3000/MicroPython-Firmware-Studio)
 ![Repo Size](https://img.shields.io/github/repo-size/Lupin3000/MicroPython-Firmware-Studio)
 
