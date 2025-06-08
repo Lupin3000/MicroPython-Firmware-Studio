@@ -7,7 +7,14 @@
 
 ## Preview
 
-![Screenshot](img/application_preview.jpg)
+![Screenshot macOS](img/screenshot_macos.jpg)
+Preview: macOS
+
+![Screenshot Linux](img/screeshot_linux.jpg)
+Preview: Linux
+
+![Screenshot Windows](img/screenshot_windows.jpg)
+Preview: Windows
 
 The **MicroPython Firmware Studio** is a user-friendly application designed for the management and configuration of ESP microcontrollers. This software enables efficient firmware development and seamless flashing of MicroPython firmware onto ESP chips.
 
