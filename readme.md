@@ -51,6 +51,8 @@ $ groups <USER>
 
 **Windows**
 
+Also, install the [Silicon Labs CP210x VCP drivers](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads).
+
 If you use Python virtualenv, execute as the Administrator the following command in cmd:
 
 ```shell
