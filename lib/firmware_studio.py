@@ -1,6 +1,7 @@
 from glob import glob
 from logging import getLogger, debug, error
 from os.path import expanduser
+from platform import system
 from subprocess import run, CalledProcessError
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
@@ -24,10 +25,6 @@ class MicroPythonFirmwareStudio(CTk):
     :type _FONT_CATEGORY: tuple
     :ivar _FONT_DESCRIPTION: The font style for the description labels.
     :type _FONT_DESCRIPTION: tuple
-    :ivar _DEVICE_SEARCH_PATH: The default search path for device serial ports.
-    :type _DEVICE_SEARCH_PATH: str
-    :ivar _FIRMWARE_SEARCH_PATH: The default search path for firmware files.
-    :type _FIRMWARE_SEARCH_PATH: str
     :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
     :type _BAUDRATE_OPTIONS: list
     """
@@ -35,8 +32,6 @@ class MicroPythonFirmwareStudio(CTk):
     _FONT_PATH: tuple = ('Arial', 20, 'bold')
     _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
     _FONT_DESCRIPTION: tuple = ('Arial', 14)
-    _DEVICE_SEARCH_PATH: str = OPERATING_SYSTEM['Darwin']['device_path']
-    _FIRMWARE_SEARCH_PATH: str = OPERATING_SYSTEM['Darwin']['search_path']
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
@@ -44,6 +39,14 @@ class MicroPythonFirmwareStudio(CTk):
         A GUI class to manage ESP device configuration and firmware flashing.
         """
         super().__init__()
+
+        current_platform = system()
+        if current_platform not in OPERATING_SYSTEM:
+            raise Exception(f"Unsupported operating system: {current_platform}")
+        else:
+            debug(f"Current platform: {current_platform}")
+            self.__device_search_path = OPERATING_SYSTEM[current_platform]['device_path']
+            self.__firmware_search_path = OPERATING_SYSTEM[current_platform]['search_path']
 
         self.title(self._WINDOW_TITLE)
         self.resizable(False, False)
@@ -207,7 +210,7 @@ class MicroPythonFirmwareStudio(CTk):
         :return: None
         """
         current_selection = self._device_option.get()
-        devices = glob(self._DEVICE_SEARCH_PATH)
+        devices = glob(self.__device_search_path)
 
         if not devices:
             devices = ["No devices found"]
@@ -326,7 +329,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         :return: None
         """
-        default_dir = expanduser(self._FIRMWARE_SEARCH_PATH)
+        default_dir = expanduser(self.__firmware_search_path)
 
         file_path = filedialog.askopenfilename(
             initialdir=default_dir,
