@@ -49,6 +49,22 @@ $ usermod -aG dialout <USER>
 $ groups <USER>
 ```
 
+**Windows**
+
+If you use Python virtualenv, execute as the Administrator the following command in cmd:
+
+```shell
+# Allows all scripts to run, including unsigned or downloaded ones (unsecure)
+> Set-ExecutionPolicy Unrestricted -Force
+```
+
+It is very unsecure! Additionally, you could do the same as a user:
+
+```shell
+# Allows all scripts to run, including unsigned or downloaded ones (temporary)
+> Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+```
+
 ### Minimum requirements
 
 The code is written and tested with the following requirements:
