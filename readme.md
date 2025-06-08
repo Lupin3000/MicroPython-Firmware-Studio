@@ -40,7 +40,7 @@ In Linux systems you need to execute the following commands (_e.q. as root_):
 $ apt update && apt upgrade -y
 
 # install required Python modules
-$ apt install -y python3-venv python3-tk
+$ apt install -y python3-pip python3-venv python3-tk
 
 # enable dialout permissions
 $ usermod -aG dialout <USER>
