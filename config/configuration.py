@@ -33,5 +33,9 @@ OPERATING_SYSTEM: dict = {
     "Linux": {
         "device_path": "/dev/ttyUSB*",
         "search_path": "~/Downloads"
+    },
+    "Windows": {
+        "device_path": "COM*",
+        "search_path": "C:/Users/"
     }
 }
