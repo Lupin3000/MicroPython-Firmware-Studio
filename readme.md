@@ -53,12 +53,12 @@ $ groups <USER>
 
 The code is written and tested with the following requirements:
 
-| OS     | Python Module                                                                                                                 |
-|--------|-------------------------------------------------------------------------------------------------------------------------------|
-| macOS  | [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)                                           | 
-| macOS  | [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/) |
-| macOS  | [![Static](https://img.shields.io/badge/customtkinter-==5.2.2-green)](https://customtkinter.tomschimansky.com)                |
-| macOS  | [![Static](https://img.shields.io/badge/pillow-==11.2.1-green)](https://python-pillow.github.io)                              |
+| OS            | Python Module                                                                                                                 |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------|
+| macOS + Linux | [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)                                           | 
+| macOS + Linux | [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/) |
+| macOS + Linux | [![Static](https://img.shields.io/badge/customtkinter-==5.2.2-green)](https://customtkinter.tomschimansky.com)                |
+| macOS + Linux | [![Static](https://img.shields.io/badge/pillow-==11.2.1-green)](https://python-pillow.github.io)                              |
 
 ### Quick installation
 
