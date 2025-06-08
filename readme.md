@@ -57,7 +57,7 @@ If you use Python virtualenv, execute as the Administrator the following command
 > Set-ExecutionPolicy Unrestricted -Force
 ```
 
-It is very unsecure! Additionally, you could do the same as a user:
+It is very unsecure! Additionally, you could do the same (_temporary_) as a user:
 
 ```shell
 # Allows all scripts to run, including unsigned or downloaded ones (temporary)
