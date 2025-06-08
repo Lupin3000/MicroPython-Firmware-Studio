@@ -90,8 +90,11 @@ $ cd MicroPython-Firmware-Studio/
 # create Python virtualenv (optional but recommended)
 $ python3 -m venv .venv
 
-# activate Python virtualenv
+# activate Python virtualenv (macOS & Linux)
 $ source venv/bin/activate
+
+# activate Python virtualenv (Windows)
+$ .\.venv\Scripts\activate
 
 # update pip (optional)
 (.venv) $ pip3 install -U pip
