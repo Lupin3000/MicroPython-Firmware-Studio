@@ -123,10 +123,13 @@ After MicroPython firmware flashing was successful you can use `rshell` to conne
 ## Preview
 
 > Preview: macOS
+>
 > ![Screenshot macOS](img/screenshot_macos.jpg)
 
 > Preview: Linux
+> 
 > ![Screenshot Linux](img/screeshot_linux.jpg)
 
 > Preview: Windows
+> 
 > ![Screenshot Windows](img/screenshot_windows.jpg)
