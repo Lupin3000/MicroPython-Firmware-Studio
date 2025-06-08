@@ -1,7 +1,7 @@
 # MicroPython Firmware Studio
 
 ![License](https://img.shields.io/github/license/Lupin3000/MicroPython-Firmware-Studio)
-![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)
 ![Last Commit](https://img.shields.io/github/last-commit/Lupin3000/MicroPython-Firmware-Studio)
 ![Repo Size](https://img.shields.io/github/repo-size/Lupin3000/MicroPython-Firmware-Studio)
 
@@ -23,11 +23,17 @@ Supported devices include ESP chips in the variants ESP32, ESP32-S2, ESP32-S3, E
 
 ### Prerequisite
 
-The latest [VCP driver](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) needs to be installed.
+> To communicate with microcontrollers via USB, you may need to install additional drivers on your system.
+
+**macOS**
+
+Install the [Silicon Labs CP210x VCP drivers](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) or the corresponding drivers provided by your microcontroller manufacturer.
 
 **Linux**
 
-In Linux systems you need to execute following commands (_eq. as root_):
+Linux typically does not require VCP drivers, as they are built into the kernel. However, you need to take a few steps to enable proper communication.
+
+In Linux systems you need to execute the following commands (_e.q. as root_):
 
 ```shell
 # update system
