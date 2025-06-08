@@ -19,6 +19,8 @@ Supported devices include ESP chips in the variants ESP32, ESP32-S2, ESP32-S3, E
 ### Prerequisite
 
 > To communicate with microcontrollers via USB, you may need to install additional drivers on your system.
+> 
+> As this software is built on Python, please ensure you have [Python](https://www.python.org) >= 3.12.x installed.
 
 **macOS**
 
