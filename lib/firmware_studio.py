@@ -1,6 +1,6 @@
 from glob import glob
 from serial.tools import list_ports
-from logging import getLogger, debug, error
+from logging import getLogger, debug, info, error
 from os.path import expanduser
 from platform import system
 from subprocess import run, CalledProcessError
@@ -33,6 +33,7 @@ class MicroPythonFirmwareStudio(CTk):
     _FONT_PATH: tuple = ('Arial', 20, 'bold')
     _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
     _FONT_DESCRIPTION: tuple = ('Arial', 14)
+    _RELOAD_ICON: str = 'img/reload.png'
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
@@ -71,7 +72,7 @@ class MicroPythonFirmwareStudio(CTk):
         self._device_path_label.pack(side="left", padx=10, pady=10)
         self._device_path_label.configure(font=self._FONT_PATH)
 
-        reload_img = CTkImage(light_image=Image.open('img/reload.png'))
+        reload_img = CTkImage(light_image=Image.open(self._RELOAD_ICON))
         self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
         self._refresh.pack(side="right", padx=10, pady=10)
 
@@ -249,6 +250,16 @@ class MicroPythonFirmwareStudio(CTk):
         """
         try:
             result = run(command, capture_output=True, text=True, check=True)
+
+            if "flash_id" in command:
+                filtered_lines = []
+
+                for line in result.stdout.splitlines():
+                    if "Chip is" in line or "Detected flash size" in line or "Detecting chip type" in line:
+                        line = line.strip()
+                        info(line)
+                        filtered_lines.append(line)
+
             self._console_text.insert("end", result.stdout)
         except CalledProcessError as e:
             error_msg = e.stderr if e.stderr else str(e)
@@ -263,10 +274,8 @@ class MicroPythonFirmwareStudio(CTk):
         :type selected_device: Optional[str]
         :return: None
         """
-        debug(f"Selected device: {selected_device}")
-
         if selected_device and selected_device not in ("Select Device", "No devices found"):
-            debug(f"Selected device: {selected_device}")
+            info(f"Selected device: {selected_device}")
             self.__device_path = selected_device
             self._device_path_label.configure(text=f"Device Path: {self.__device_path}")
         else:
