@@ -5,17 +5,6 @@
 ![Last Commit](https://img.shields.io/github/last-commit/Lupin3000/MicroPython-Firmware-Studio)
 ![Repo Size](https://img.shields.io/github/repo-size/Lupin3000/MicroPython-Firmware-Studio)
 
-## Preview
-
-![Screenshot macOS](img/screenshot_macos.jpg)
-Preview: macOS
-
-![Screenshot Linux](img/screeshot_linux.jpg)
-Preview: Linux
-
-![Screenshot Windows](img/screenshot_windows.jpg)
-Preview: Windows
-
 The **MicroPython Firmware Studio** is a user-friendly application designed for the management and configuration of ESP microcontrollers. This software enables efficient firmware development and seamless flashing of MicroPython firmware onto ESP chips.
 
 ## Important
@@ -130,3 +119,14 @@ After MicroPython firmware flashing was successful you can use `rshell` to conne
 # connect to device
 (.venv) $ rshell -p <PORT>
 ```
+
+## Preview
+
+> Preview: macOS
+![Screenshot macOS](img/screenshot_macos.jpg)
+
+> Preview: Linux
+![Screenshot Linux](img/screeshot_linux.jpg)
+
+> Preview: Windows
+![Screenshot Windows](img/screenshot_windows.jpg)
