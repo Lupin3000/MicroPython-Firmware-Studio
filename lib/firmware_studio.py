@@ -1,4 +1,5 @@
 from glob import glob
+from serial.tools import list_ports
 from logging import getLogger, debug, error
 from os.path import expanduser
 from platform import system
@@ -40,13 +41,13 @@ class MicroPythonFirmwareStudio(CTk):
         """
         super().__init__()
 
-        current_platform = system()
-        if current_platform not in OPERATING_SYSTEM:
-            raise Exception(f"Unsupported operating system: {current_platform}")
+        self._current_platform = system()
+        if self._current_platform not in OPERATING_SYSTEM:
+            raise Exception(f"Unsupported operating system: {self._current_platform}")
         else:
-            debug(f"Current platform: {current_platform}")
-            self.__device_search_path = OPERATING_SYSTEM[current_platform]['device_path']
-            self.__firmware_search_path = OPERATING_SYSTEM[current_platform]['search_path']
+            debug(f"Current platform: {self._current_platform}")
+            self.__device_search_path = OPERATING_SYSTEM[self._current_platform]['device_path']
+            self.__firmware_search_path = OPERATING_SYSTEM[self._current_platform]['search_path']
 
         self.title(self._WINDOW_TITLE)
         self.resizable(False, False)
@@ -210,7 +211,11 @@ class MicroPythonFirmwareStudio(CTk):
         :return: None
         """
         current_selection = self._device_option.get()
-        devices = glob(self.__device_search_path)
+
+        if self._current_platform in ["Linux", "Darwin"]:
+            devices = glob(self.__device_search_path)
+        else:
+            devices = [port.device for port in list_ports.comports()]
 
         if not devices:
             devices = ["No devices found"]
