@@ -2,24 +2,23 @@ from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
 from os.path import expanduser
-from platform import system
 from subprocess import run, CalledProcessError
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
 from PIL import Image
-from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
-from config.configuration import CONFIGURED_DEVICES, OPERATING_SYSTEM
+from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
+from lib.base_ui import BaseUI
+from config.application_configuration import FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON
+from config.device_configuration import CONFIGURED_DEVICES
 
 
 logger = getLogger(__name__)
 
 
-class MicroPythonFirmwareStudio(CTk):
+class MicroPythonFirmwareStudio(BaseUI):
     """
     A class representing the MicroPython Firmware Studio GUI.
 
-    :ivar _WINDOW_TITLE: The title of the dialog window.
-    :type _WINDOW_TITLE: str
     :ivar _FONT_PATH: The font style for the path labels.
     :type _FONT_PATH: tuple
     :ivar _FONT_CATEGORY: The font style for the category labels.
@@ -29,11 +28,10 @@ class MicroPythonFirmwareStudio(CTk):
     :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
     :type _BAUDRATE_OPTIONS: list
     """
-    _WINDOW_TITLE: str = 'MicroPython Firmware Studio'
-    _FONT_PATH: tuple = ('Arial', 20, 'bold')
-    _FONT_CATEGORY: tuple = ('Arial', 16, 'bold')
-    _FONT_DESCRIPTION: tuple = ('Arial', 14)
-    _RELOAD_ICON: str = 'img/reload.png'
+    _FONT_PATH: tuple = FONT_PATH
+    _FONT_CATEGORY: tuple = FONT_CATEGORY
+    _FONT_DESCRIPTION: tuple = FONT_DESCRIPTION
+    _RELOAD_ICON: str = RELOAD_ICON
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
@@ -42,32 +40,13 @@ class MicroPythonFirmwareStudio(CTk):
         """
         super().__init__()
 
-        self._current_platform = system()
-        if self._current_platform not in OPERATING_SYSTEM:
-            raise Exception(f"Unsupported operating system: {self._current_platform}")
-        else:
-            debug(f"Current platform: {self._current_platform}")
-            self.__device_search_path = OPERATING_SYSTEM[self._current_platform]['device_path']
-            self.__firmware_search_path = OPERATING_SYSTEM[self._current_platform]['search_path']
-
-        self.title(self._WINDOW_TITLE)
-        self.resizable(False, False)
-
         # Variables
         self.__device_path: Optional[str] = None
         self.__selected_chip: Optional[str] = None
         self.__selected_baudrate: Optional[int] = 460800
         self.__selected_firmware: Optional[str] = None
 
-        # Main Grid Configuration
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=3)
-        self.grid_rowconfigure((1, 2, 3), weight=1)
-
         # Top Frame
-        self._top_frame = CTkFrame(self)
-        self._top_frame.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
-
         self._device_path_label = CTkLabel(self._top_frame, text="Device Path:")
         self._device_path_label.pack(side="left", padx=10, pady=10)
         self._device_path_label.configure(font=self._FONT_PATH)
@@ -80,10 +59,6 @@ class MicroPythonFirmwareStudio(CTk):
         self._device_option.pack(side="right", padx=10, pady=10)
 
         # Left Top Frame
-        self._left_top_frame = CTkFrame(self)
-        self._left_top_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
-        self._left_top_frame.grid_columnconfigure(0, weight=1)
-
         self._left_label = CTkLabel(self._left_top_frame, text='Information')
         self._left_label.pack(padx=10, pady=10)
         self._left_label.configure(font=self._FONT_CATEGORY)
@@ -95,10 +70,6 @@ class MicroPythonFirmwareStudio(CTk):
         self._memory_info_btn.pack(padx=10, pady=5)
 
         # Left Bottom Frame
-        self._left_bottom_frame = CTkFrame(self)
-        self._left_bottom_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
-        self._left_bottom_frame.grid_columnconfigure(0, weight=1)
-
         self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
         self._left_bottom_label.pack(padx=10, pady=10)
         self._left_bottom_label.configure(font=self._FONT_CATEGORY)
@@ -107,11 +78,6 @@ class MicroPythonFirmwareStudio(CTk):
         self._erase_btn.pack(padx=10, pady=5)
 
         # Right Frame
-        self._right_frame = CTkFrame(self)
-        self._right_frame.grid(row=1, column=1, rowspan=2, padx=10, pady=5, sticky="nsew")
-        self._right_frame.grid_columnconfigure(0, weight=0)
-        self._right_frame.grid_columnconfigure(1, weight=0)
-
         self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
         self._right_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="w")
         self._right_label.configure(font=self._FONT_CATEGORY)
@@ -189,10 +155,6 @@ class MicroPythonFirmwareStudio(CTk):
         self._flash_btn.grid(row=6, columnspan=4, padx=10, pady=5, sticky="w")
 
         # Bottom Frame
-        self._bottom_frame = CTkFrame(self)
-        self._bottom_frame.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
-        self._bottom_frame.grid_columnconfigure(0, weight=1)
-
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
         self._bottom_label.pack(padx=10, pady=10)
         self._bottom_label.configure(font=self._FONT_CATEGORY)
@@ -214,7 +176,7 @@ class MicroPythonFirmwareStudio(CTk):
         current_selection = self._device_option.get()
 
         if self._current_platform in ["Linux", "Darwin"]:
-            devices = glob(self.__device_search_path)
+            devices = glob(self._device_search_path)
         else:
             devices = [port.device for port in list_ports.comports()]
 
@@ -343,7 +305,7 @@ class MicroPythonFirmwareStudio(CTk):
 
         :return: None
         """
-        default_dir = expanduser(self.__firmware_search_path)
+        default_dir = expanduser(self._firmware_search_path)
 
         file_path = filedialog.askopenfilename(
             initialdir=default_dir,
@@ -458,12 +420,3 @@ class MicroPythonFirmwareStudio(CTk):
 
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n')
         self._execute_command(command=cmd)
-
-    def destroy(self) -> None:
-        """
-        Terminates the execution of the current process or application by invoking
-        the quit method associated with the instance.
-
-        :return: None
-        """
-        self.quit()
