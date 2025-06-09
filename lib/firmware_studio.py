@@ -2,10 +2,12 @@ from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
 from os.path import expanduser
-from subprocess import run, CalledProcessError
+from subprocess import Popen, PIPE
 from tkinter import filedialog, Canvas, Event
 from typing import Optional, List
 from PIL import Image
+from threading import Thread
+from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
 from lib.base_ui import BaseUI
 from config.application_configuration import FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON
@@ -30,7 +32,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         super().__init__()
 
-        # Variables
+        # Variables and objects
+        self._console_queue: Queue = Queue()
         self.__device_path: Optional[str] = None
         self.__selected_chip: Optional[str] = None
         self.__selected_baudrate: Optional[int] = 460800
@@ -151,71 +154,23 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
         self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
-        self._console_text.bind("<Key>", lambda e: "break")
+        self._console_text.bind("<Key>", self._block_text_input)
+        self._console_text.bind("<Control-c>", lambda e: None)
+        self._console_text.bind("<Control-C>", lambda e: None)
 
         # search for devices on the start
         self._search_devices()
 
-    def _search_devices(self) -> None:
-        """
-        Updates the device dropdown menu with a list of available devices. If there are no
-        connected devices, sets "No devices found" as the only dropdown value.
+        # poll the console queue for new lines
+        self._poll_console_queue()
 
-        :return: None
-        """
-        current_selection = self._device_option.get()
+    @staticmethod
+    def _block_text_input(event) -> str:
+        allowed_keys = ("Shift_L", "Shift_R", "Control_L", "Control_R", "Alt_L", "Alt_R")
+        if event.keysym in allowed_keys or event.state & 0x0004:
+            return ""
 
-        if self._current_platform in ["Linux", "Darwin"]:
-            devices = glob(self._device_search_path)
-        else:
-            devices = [port.device for port in list_ports.comports()]
-
-        if not devices:
-            devices = ['No devices found']
-        else:
-            devices.insert(0, 'Select Device')
-
-        debug(f'Devices: {devices}')
-        self._device_option.configure(values=devices)
-
-        if current_selection in devices:
-            self._device_option.set(current_selection)
-        else:
-            self._device_option.set(devices[0])
-            self._set_device(None)
-
-    def _delete_console(self) -> None:
-        """
-        Deletes all the content from the console text box.
-
-        :return: None
-        """
-        self._console_text.delete("1.0", "end")
-
-    def _execute_command(self, command: List[str]) -> None:
-        """
-        Executes a system command by running it as a subprocess and captures its output.
-
-        :param command: The command to execute is represented as a list of strings.
-        :type command: List[str]
-        :return: None
-        """
-        try:
-            result = run(command, capture_output=True, text=True, check=True)
-
-            if "flash_id" in command:
-                filtered_lines = []
-
-                for line in result.stdout.splitlines():
-                    if "Chip is" in line or "Detected flash size" in line or "Detecting chip type" in line:
-                        line = line.strip()
-                        info(line)
-                        filtered_lines.append(line)
-
-            self._console_text.insert("end", result.stdout)
-        except CalledProcessError as e:
-            error_msg = e.stderr if e.stderr else str(e)
-            self._console_text.insert("end", f'[ERROR]: {error_msg}')
+        return "break"
 
     def _set_device(self, selected_device: Optional[str]) -> None:
         """
@@ -311,6 +266,144 @@ class MicroPythonFirmwareStudio(BaseUI):
             self.__selected_firmware = None
             self._firmware_checkbox.deselect()
 
+    def _poll_console_queue(self) -> None:
+        """
+        Polls the console queue for new messages and updates the text widget
+        with messages retrieved from the queue. Continuously checks the
+        console queue at regular intervals, inserts retrieved lines into
+        the text widget, and ensures the view stays scrolled to the most
+        recent message.
+
+        :raises Empty: This is silently handled within the method logic when the queue is empty.
+        :return: This method does not return any value.
+        """
+        try:
+            while True:
+                line = self._console_queue.get_nowait()
+                self._console_text.insert("end", f'{line}\n')
+                self._console_text.see("end")
+        except Empty:
+            pass
+
+        self.after(100, self._poll_console_queue)
+
+    def _search_devices(self) -> None:
+        """
+        Updates the device dropdown menu with a list of available devices. If there are no
+        connected devices, sets "No devices found" as the only dropdown value.
+
+        :return: None
+        """
+        current_selection = self._device_option.get()
+
+        if self._current_platform in ["Linux", "Darwin"]:
+            devices = glob(self._device_search_path)
+        else:
+            devices = [port.device for port in list_ports.comports()]
+
+        if not devices:
+            devices = ['No devices found']
+        else:
+            devices.insert(0, 'Select Device')
+
+        debug(f'Devices: {devices}')
+        self._device_option.configure(values=devices)
+
+        if current_selection in devices:
+            self._device_option.set(current_selection)
+        else:
+            self._device_option.set(devices[0])
+            self._set_device(None)
+
+    def _delete_console(self) -> None:
+        """
+        Deletes all the content from the console text box.
+
+        :return: None
+        """
+        self._console_text.delete("1.0", "end")
+
+    def _disable_buttons(self) -> None:
+        """
+        Disables specific buttons in the user interface by changing their state to 'disabled'.
+
+        :return: None
+        """
+        self._chip_info_btn.configure(state='disabled')
+        self._memory_info_btn.configure(state='disabled')
+        self._erase_btn.configure(state='disabled')
+        self._flash_btn.configure(state='disabled')
+
+    def _enable_buttons(self) -> None:
+        """
+        Enables specific UI buttons by changing their state to 'normal'.
+
+        :return: None
+        """
+        self._chip_info_btn.configure(state='normal')
+        self._memory_info_btn.configure(state='normal')
+        self._erase_btn.configure(state='normal')
+        self._flash_btn.configure(state='normal')
+
+    def _on_thread_complete(self) -> None:
+        """
+        Handles the completion of a thread execution.
+
+        :return: None
+        """
+        self._enable_buttons()
+
+    def _run_threaded_command(self, command: List[str]) -> None:
+        """
+        Executes a given command on a separate thread to avoid blocking the
+        main execution flow. The method ensures that UI buttons are
+        disabled while the command is being executed in the background.
+
+        :param command: A list of strings representing the command and its arguments to be executed.
+        :type command: List[str]
+        :return: None
+        """
+        self._disable_buttons()
+
+        thread = Thread(target=self._execute_command, args=(command,))
+        thread.start()
+
+    def _execute_command(self, command: List[str]) -> None:
+        """
+        Executes a command as a subprocess and processes its output line by line. The method
+        also filters specific lines of output related to flash identification and handles
+        command completion by calling a callback function.
+
+        :param command: A list of strings representing the command and its arguments to be executed.
+        :type command: List[str]
+        :return: None
+        """
+        is_flash_id = "flash_id" in command
+        process = Popen(command, stdout=PIPE, stderr=PIPE, text=True)
+
+        while True:
+            line = process.stdout.readline()
+            if not line:
+                break
+
+            line = line.strip()
+            if is_flash_id and (
+                    "Chip is" in line or
+                    "Detected flash size" in line or
+                    "Detecting chip type" in line
+            ):
+                info(line)
+
+            self._console_queue.put(line)
+
+        process.wait()
+
+        if process.returncode != 0:
+            error_output = process.stderr.read().strip()
+            self._console_queue.put(f"[ERROR]: {error_output}")
+
+        self.after(0, self._on_thread_complete)
+
     def _get_chip_id(self) -> None:
         """
         Retrieves the chip id identification for the connected device.
@@ -365,7 +458,7 @@ class MicroPythonFirmwareStudio(BaseUI):
                command_name]
 
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n')
-        self._execute_command(command=cmd)
+        self._run_threaded_command(command=cmd)
 
     def _flash_firmware(self) -> None:
         """
@@ -404,4 +497,4 @@ class MicroPythonFirmwareStudio(BaseUI):
                self.__selected_firmware]
 
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n')
-        self._execute_command(command=cmd)
+        self._run_threaded_command(command=cmd)
