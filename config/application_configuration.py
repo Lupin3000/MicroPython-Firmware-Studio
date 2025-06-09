@@ -1,9 +1,9 @@
 # colors
 APPEARANCE_MODE: str = 'dark'
 COLOR_THEME: str = 'blue'
-CONSOLE_INFO: str = "green"
+CONSOLE_INFO: str = "green2"
 CONSOLE_COMMAND: str = "white"
-CONSOLE_ERROR: str = "red"
+CONSOLE_ERROR: str = "OrangeRed2"
 LINK_OBJECT: str = "dodger blue"
 
 # title
