@@ -10,8 +10,9 @@ from threading import Thread
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
 from lib.base_ui import BaseUI
-from config.application_configuration import FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON
 from config.device_configuration import CONFIGURED_DEVICES
+from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON,
+                                              CONSOLE_INFO, CONSOLE_COMMAND, CONSOLE_ERROR)
 
 
 logger = getLogger(__name__)
@@ -154,6 +155,9 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
         self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
+        self._console_text.tag_config("info", foreground=CONSOLE_INFO)
+        self._console_text.tag_config("normal", foreground=CONSOLE_COMMAND)
+        self._console_text.tag_config("error", foreground=CONSOLE_ERROR)
         self._console_text.bind("<Key>", self._block_text_input)
         self._console_text.bind("<Control-c>", lambda e: None)
         self._console_text.bind("<Control-C>", lambda e: None)
@@ -289,7 +293,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         try:
             while True:
                 line = self._console_queue.get_nowait()
-                self._console_text.insert("end", f'{line}\n')
+                self._console_text.insert("end", f'{line}\n', "normal")
                 self._console_text.see("end")
         except Empty:
             pass
@@ -451,12 +455,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         allowed_commands = {"chip_id", "flash_id", "erase_flash"}
         if command_name not in allowed_commands:
             error(f'Invalid command: {command_name}')
-            self._console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n')
+            self._console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n', "error")
             return
 
         if not self.__device_path:
             error('No device selected!')
-            self._console_text.insert("end", '[ERROR] No device selected!\n')
+            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
             return
 
         chip = self.__selected_chip if self.__selected_chip else "auto"
@@ -466,7 +470,7 @@ class MicroPythonFirmwareStudio(BaseUI):
                self.__device_path,
                command_name]
 
-        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n')
+        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self._run_threaded_command(command=cmd)
 
     def _flash_firmware(self) -> None:
@@ -495,7 +499,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if errors:
             error(f'Found errors: {errors}')
-            self._console_text.insert("end", f'[ERROR] {", ".join(errors)}\n')
+            self._console_text.insert("end", f'[ERROR] {", ".join(errors)}\n', "error")
             return
 
         cmd = ["python", "-m", "esptool",
@@ -505,5 +509,5 @@ class MicroPythonFirmwareStudio(BaseUI):
                'write_flash', self._sector_input.get().strip(),
                self.__selected_firmware]
 
-        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n')
+        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self._run_threaded_command(command=cmd)
