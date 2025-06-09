@@ -37,7 +37,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__selected_firmware: Optional[str] = None
 
         # Top Frame
-        self._device_path_label = CTkLabel(self._top_frame, text="Device Path:")
+        self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
         self._device_path_label.pack(side="left", padx=10, pady=10)
         self._device_path_label.configure(font=FONT_PATH)
 
@@ -110,7 +110,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._baudrate_option = CTkOptionMenu(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
         self._baudrate_option.grid(row=3, column=1, padx=10, pady=5, sticky="w")
-        self._baudrate_option.set("460800")
+        self._baudrate_option.set(str(self.__selected_baudrate))
         self._baudrate_option.configure(command=self._set_baudrate)
 
         self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
@@ -171,11 +171,11 @@ class MicroPythonFirmwareStudio(BaseUI):
             devices = [port.device for port in list_ports.comports()]
 
         if not devices:
-            devices = ["No devices found"]
+            devices = ['No devices found']
         else:
-            devices.insert(0, "Select Device")
+            devices.insert(0, 'Select Device')
 
-        debug(f"Devices: {devices}")
+        debug(f'Devices: {devices}')
         self._device_option.configure(values=devices)
 
         if current_selection in devices:
@@ -227,12 +227,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         :return: None
         """
         if selected_device and selected_device not in ("Select Device", "No devices found"):
-            info(f"Selected device: {selected_device}")
+            info(f'Selected device: {selected_device}')
             self.__device_path = selected_device
-            self._device_path_label.configure(text=f"Device Path: {self.__device_path}")
+            self._device_path_label.configure(text=f'Device Path: {self.__device_path}')
         else:
             self.__device_path = None
-            self._device_path_label.configure(text="Device Path:")
+            self._device_path_label.configure(text='Device Path:')
 
     def _set_chip(self, selection: str) -> None:
         """
@@ -242,7 +242,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type selection: str
         :return: None
         """
-        debug(f"Selected chip: {selection}")
+        debug(f'Selected chip: {selection}')
 
         if selection != "Select Chip":
             self.__selected_chip = CONFIGURED_DEVICES[selection]["name"]
@@ -264,7 +264,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type selection: str
         :return: None
         """
-        debug(f"Selected baudrate: {selection}")
+        debug(f'Selected baudrate: {selection}')
 
         if selection and selection in self._BAUDRATE_OPTIONS:
             self.__selected_baudrate = int(selection)
@@ -299,11 +299,10 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         file_path = filedialog.askopenfilename(
             initialdir=default_dir,
-            title="Select Firmware File",
+            title='Select Firmware File',
             filetypes=(("Binary files", "*.bin"), ("All files", "*.*"))
         )
-
-        debug(f"Selected firmware: {file_path}")
+        debug(f'Selected firmware: {file_path}')
 
         if file_path:
             self.__selected_firmware = file_path
@@ -344,18 +343,18 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type command_name: str
         :return: None
         """
-        debug(f"Running esptool command: {command_name}")
+        debug(f'Running esptool command: {command_name}')
         self._delete_console()
 
         allowed_commands = {"chip_id", "flash_id", "erase_flash"}
         if command_name not in allowed_commands:
+            error(f'Invalid command: {command_name}')
             self._console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n')
-            error(f"Invalid command: {command_name}")
             return
 
         if not self.__device_path:
-            self._console_text.insert("end", "[ERROR] No device selected!\n")
-            error("No device selected!")
+            error('No device selected!')
+            self._console_text.insert("end", '[ERROR] No device selected!\n')
             return
 
         chip = self.__selected_chip if self.__selected_chip else "auto"
@@ -378,26 +377,22 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         errors = []
         if not self.__device_path:
-            errors.append("No device path selected")
-            error('No device path selected.')
+            errors.append('No device path selected')
 
         if not self.__selected_chip:
-            errors.append("No chip selected")
-            error('No chip selected.')
+            errors.append('No chip selected')
 
         if not self.__selected_firmware:
-            errors.append("No firmware selected")
-            error('No firmware selected.')
+            errors.append('No firmware selected')
 
         if not self.__selected_baudrate:
-            errors.append("No baudrate selected")
-            error('No baudrate selected.')
+            errors.append('No baudrate selected')
 
         if not self._sector_input.get().strip():
-            errors.append("No sector value provided")
-            error('No sector value provided.')
+            errors.append('No sector value provided')
 
         if errors:
+            error(f'Found errors: {errors}')
             self._console_text.insert("end", f'[ERROR] {", ".join(errors)}\n')
             return
 
