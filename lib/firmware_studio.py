@@ -165,8 +165,17 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._poll_console_queue()
 
     @staticmethod
-    def _block_text_input(event) -> str:
+    def _block_text_input(event: Event) -> str:
+        """
+        Filters keyboard input events to block specific keys or combinations.
+
+        :param event: A keyboard event containing information such as the key pressed.
+        :type event: Event
+        :return: A string indicating whether the keypress should be stopped or allowed.
+        :rtype: str
+        """
         allowed_keys = ("Shift_L", "Shift_R", "Control_L", "Control_R", "Alt_L", "Alt_R")
+
         if event.keysym in allowed_keys or event.state & 0x0004:
             return ""
 
