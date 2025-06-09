@@ -19,19 +19,9 @@ class MicroPythonFirmwareStudio(BaseUI):
     """
     A class representing the MicroPython Firmware Studio GUI.
 
-    :ivar _FONT_PATH: The font style for the path labels.
-    :type _FONT_PATH: tuple
-    :ivar _FONT_CATEGORY: The font style for the category labels.
-    :type _FONT_CATEGORY: tuple
-    :ivar _FONT_DESCRIPTION: The font style for the description labels.
-    :type _FONT_DESCRIPTION: tuple
     :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
     :type _BAUDRATE_OPTIONS: list
     """
-    _FONT_PATH: tuple = FONT_PATH
-    _FONT_CATEGORY: tuple = FONT_CATEGORY
-    _FONT_DESCRIPTION: tuple = FONT_DESCRIPTION
-    _RELOAD_ICON: str = RELOAD_ICON
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
 
     def __init__(self):
@@ -49,9 +39,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text="Device Path:")
         self._device_path_label.pack(side="left", padx=10, pady=10)
-        self._device_path_label.configure(font=self._FONT_PATH)
+        self._device_path_label.configure(font=FONT_PATH)
 
-        reload_img = CTkImage(light_image=Image.open(self._RELOAD_ICON))
+        reload_img = CTkImage(light_image=Image.open(RELOAD_ICON))
         self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
         self._refresh.pack(side="right", padx=10, pady=10)
 
@@ -61,7 +51,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Left Top Frame
         self._left_label = CTkLabel(self._left_top_frame, text='Information')
         self._left_label.pack(padx=10, pady=10)
-        self._left_label.configure(font=self._FONT_CATEGORY)
+        self._left_label.configure(font=FONT_CATEGORY)
 
         self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID', command=self._get_chip_id)
         self._chip_info_btn.pack(padx=10, pady=5)
@@ -72,7 +62,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Left Bottom Frame
         self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
         self._left_bottom_label.pack(padx=10, pady=10)
-        self._left_bottom_label.configure(font=self._FONT_CATEGORY)
+        self._left_bottom_label.configure(font=FONT_CATEGORY)
 
         self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash', command=self._erase_flash)
         self._erase_btn.pack(padx=10, pady=5)
@@ -80,7 +70,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Right Frame
         self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
         self._right_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="w")
-        self._right_label.configure(font=self._FONT_CATEGORY)
+        self._right_label.configure(font=FONT_CATEGORY)
 
         # Right Frame (chip select)
         self._chip_label = CTkLabel(self._right_frame, text='Step 1:')
@@ -97,7 +87,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
         self._chip_info.grid(row=1, column=3, padx=10, pady=5, sticky="w")
-        self._chip_info.configure(font=self._FONT_DESCRIPTION)
+        self._chip_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (firmware select)
         self._firmware_label = CTkLabel(self._right_frame, text='Step 2:')
@@ -112,7 +102,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._firmware_info = CTkLabel(self._right_frame, text='Browse and select the firmware file to upload')
         self._firmware_info.grid(row=2, column=3, padx=10, pady=5, sticky="w")
-        self._firmware_info.configure(font=self._FONT_DESCRIPTION)
+        self._firmware_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (baudrate select)
         self._baudrate_label = CTkLabel(self._right_frame, text='Step 3:')
@@ -129,7 +119,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
         self._baudrate_info.grid(row=3, column=3, padx=10, pady=5, sticky="w")
-        self._baudrate_info.configure(font=self._FONT_DESCRIPTION)
+        self._baudrate_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (sector select)
         self._sector_label = CTkLabel(self._right_frame, text='Step 4:')
@@ -144,7 +134,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
         self._sector_info.grid(row=4, column=3, padx=10, pady=5, sticky="w")
-        self._sector_info.configure(font=self._FONT_DESCRIPTION)
+        self._sector_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
@@ -157,7 +147,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
         self._bottom_label.pack(padx=10, pady=10)
-        self._bottom_label.configure(font=self._FONT_CATEGORY)
+        self._bottom_label.configure(font=FONT_CATEGORY)
 
         self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
         self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
