@@ -4,15 +4,16 @@ from logging import getLogger, debug, info, error
 from os.path import expanduser
 from subprocess import Popen, PIPE
 from tkinter import filedialog, Canvas, Event
+from webbrowser import open_new
 from typing import Optional, List
 from PIL import Image
 from threading import Thread
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
 from lib.base_ui import BaseUI
-from config.device_configuration import CONFIGURED_DEVICES
-from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON,
-                                              CONSOLE_INFO, CONSOLE_COMMAND, CONSOLE_ERROR)
+from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
+from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
+                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
 
 
 logger = getLogger(__name__)
@@ -39,6 +40,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__selected_chip: Optional[str] = None
         self.__selected_baudrate: Optional[int] = 460800
         self.__selected_firmware: Optional[str] = None
+        self.__url: str = DEFAULT_URL
 
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
@@ -73,7 +75,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         # Right Frame
         self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
-        self._right_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="w")
+        self._right_label.grid(row=0, column=0, columnspan=5, padx=10, pady=10, sticky="w")
         self._right_label.configure(font=FONT_CATEGORY)
 
         # Right Frame (chip select)
@@ -90,7 +92,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
         self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
-        self._chip_info.grid(row=1, column=3, padx=10, pady=5, sticky="w")
+        self._chip_info.grid(row=1, column=3, columnspan=2, padx=10, pady=5, sticky="w")
         self._chip_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (firmware select)
@@ -104,8 +106,13 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
         self._firmware_checkbox.grid(row=2, column=2, padx=10, pady=5, sticky="w")
 
-        self._firmware_info = CTkLabel(self._right_frame, text='Browse and select the firmware file to upload')
-        self._firmware_info.grid(row=2, column=3, padx=10, pady=5, sticky="w")
+        self._link_label = CTkLabel(self._right_frame, text='Browse', text_color=LINK_OBJECT, cursor="hand2")
+        self._link_label.grid(row=2, column=3, padx=(10, 0), pady=5, sticky="w")
+        self._link_label.configure(font=(*FONT_DESCRIPTION, "underline"))
+        self._link_label.bind("<Button-1>", self.open_url)
+
+        self._firmware_info = CTkLabel(self._right_frame, text='and select the firmware file to upload')
+        self._firmware_info.grid(row=2, column=4, padx=(5, 10), pady=5, sticky="w")
         self._firmware_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (baudrate select)
@@ -122,7 +129,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._baudrate_checkbox.select()
 
         self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
-        self._baudrate_info.grid(row=3, column=3, padx=10, pady=5, sticky="w")
+        self._baudrate_info.grid(row=3, column=3, columnspan=2, padx=10, pady=5, sticky="w")
         self._baudrate_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (sector select)
@@ -137,16 +144,16 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
 
         self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
-        self._sector_info.grid(row=4, column=3, padx=10, pady=5, sticky="w")
+        self._sector_info.grid(row=4, column=3, columnspan=2, padx=10, pady=5, sticky="w")
         self._sector_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
-        self._separator_canvas.grid(row=5, columnspan=4, sticky="ew", padx=10, pady=10)
+        self._separator_canvas.grid(row=5, columnspan=5, sticky="ew", padx=10, pady=10)
 
         # Right Frame (start firmware flash)
         self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware', command=self._flash_firmware)
-        self._flash_btn.grid(row=6, columnspan=4, padx=10, pady=5, sticky="w")
+        self._flash_btn.grid(row=6, columnspan=5, padx=10, pady=5, sticky="w")
 
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
@@ -219,10 +226,12 @@ class MicroPythonFirmwareStudio(BaseUI):
             self._chip_checkbox.select()
             self._baudrate_checkbox.select()
             self._sector_checkbox.select()
+            self.__url = CONFIGURED_DEVICES[selection]["url"]
         else:
             self.__selected_chip = None
             self._sector_input.delete(0, "end")
             self._chip_checkbox.deselect()
+            self.__url = DEFAULT_URL
 
     def _set_baudrate(self, selection: str) -> None:
         """
@@ -278,6 +287,17 @@ class MicroPythonFirmwareStudio(BaseUI):
         else:
             self.__selected_firmware = None
             self._firmware_checkbox.deselect()
+
+    def open_url(self, event: Event) -> None:
+        """
+        Opens a new web browser tab or window using the URL specified in the class attribute.
+
+        :param event: The event instance triggering this method
+        :type event: Event
+        :return: None
+        """
+        _ = event
+        open_new(url=self.__url)
 
     def _poll_console_queue(self) -> None:
         """

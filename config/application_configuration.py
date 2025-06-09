@@ -4,6 +4,7 @@ COLOR_THEME: str = 'blue'
 CONSOLE_INFO: str = "green"
 CONSOLE_COMMAND: str = "white"
 CONSOLE_ERROR: str = "red"
+LINK_OBJECT: str = "dodger blue"
 
 # title
 TITLE: str = 'MicroPython Firmware Studio'
