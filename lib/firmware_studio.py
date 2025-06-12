@@ -65,6 +65,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID', command=self._get_flash_id)
         self._memory_info_btn.pack(padx=10, pady=5)
 
+        self._mac_info_btn = CTkButton(self._left_top_frame, text='MAC Address', command=self._get_mac)
+        self._mac_info_btn.pack(padx=10, pady=5)
+
+        self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status', command=self._get_flash_status)
+        self._flash_status_btn.pack(padx=10, pady=5)
+
         # Left Bottom Frame
         self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
         self._left_bottom_label.pack(padx=10, pady=10)
@@ -453,6 +459,22 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         self._run_esptool_command("flash_id")
 
+    def _get_mac(self) -> None:
+        """
+        Retrieves the mac address information for the connected device.
+
+        :return: None
+        """
+        self._run_esptool_command("read_mac")
+
+    def _get_flash_status(self) -> None:
+        """
+        Retrieves the flash memory status information for the connected device.
+
+        :return: None
+        """
+        self._run_esptool_command("read_flash_status")
+
     def _erase_flash(self) -> None:
         """
         Erases the flash memory of the connected device.
@@ -472,7 +494,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         debug(f'Running esptool command: {command_name}')
         self._delete_console()
 
-        allowed_commands = {"chip_id", "flash_id", "erase_flash"}
+        allowed_commands = {"chip_id", "flash_id", "read_mac", "read_flash_status", "erase_flash"}
         if command_name not in allowed_commands:
             error(f'Invalid command: {command_name}')
             self._console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n', "error")
