@@ -57,8 +57,7 @@ class BaseUI(CTk):
         # Right Frame
         self._right_frame = CTkFrame(self)
         self._right_frame.grid(row=1, column=1, rowspan=2, padx=10, pady=5, sticky="nsew")
-        self._right_frame.grid_columnconfigure(0, weight=0)
-        self._right_frame.grid_columnconfigure(1, weight=0)
+        self._right_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=0)
 
         # Bottom Frame
         self._bottom_frame = CTkFrame(self)

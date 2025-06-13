@@ -94,7 +94,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._chip_option.set("Select Chip")
         self._chip_option.configure(command=self._set_chip)
 
-        self._chip_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
+        self._chip_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
         self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
@@ -109,7 +109,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._firmware_btn.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         self._firmware_btn.configure(command=self._set_firmware)
 
-        self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
+        self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._firmware_checkbox.grid(row=2, column=2, padx=10, pady=5, sticky="w")
 
         self._link_label = CTkLabel(self._right_frame, text='Browse', text_color=LINK_OBJECT, cursor="hand2")
@@ -130,7 +130,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._baudrate_option.set(str(self.__selected_baudrate))
         self._baudrate_option.configure(command=self._set_baudrate)
 
-        self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
+        self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._baudrate_checkbox.grid(row=3, column=2, padx=10, pady=5, sticky="w")
         self._baudrate_checkbox.select()
 
@@ -146,7 +146,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._sector_input.grid(row=4, column=1, padx=10, pady=5, sticky="w")
         self._sector_input.bind("<KeyRelease>", self._on_sector_input_change)
 
-        self._sector_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled')
+        self._sector_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
 
         self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
@@ -159,7 +159,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         # Right Frame (start firmware flash)
         self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware', command=self._flash_firmware)
-        self._flash_btn.grid(row=6, columnspan=5, padx=10, pady=5, sticky="w")
+        self._flash_btn.grid(row=6, column=1, columnspan=4, padx=10, pady=5, sticky="w")
 
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
