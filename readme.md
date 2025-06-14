@@ -12,7 +12,7 @@ The **MicroPython Firmware Studio** is a user-friendly application designed for 
 
 ## Supported Devices
 
-Supported devices include ESP chips in the variants ESP32, ESP32-S2, ESP32-S3, ESP32-C3, and ESP32-C6, with specific flash sector configurations.
+Supported devices include ESP chips in the variants ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C3, and ESP32-C6, with specific flash sector configurations.
 
 ## Installation
 
