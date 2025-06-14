@@ -17,5 +17,6 @@ FONT_DESCRIPTION: tuple = ('Arial', 14)
 # images
 RELOAD_ICON: str = 'img/reload.png'
 
-# log level
+# settings
 LOG_LEVEL: str = 'INFO'
+VERIFICATION_MODE: bool = True

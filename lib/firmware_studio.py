@@ -13,7 +13,8 @@ from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox
 from lib.base_ui import BaseUI
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
-                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
+                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT, VERIFICATION_MODE)
+from lib.get_micropython_version import MicroPythonREPL
 
 
 logger = getLogger(__name__)
@@ -51,6 +52,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__selected_firmware: Optional[str] = None
         self.__url: str = DEFAULT_URL
         self.__expert_mode: bool = False
+        self.__is_flashing_firmware: bool = False
 
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
@@ -475,6 +477,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         self._chip_info_btn.configure(state='disabled')
         self._memory_info_btn.configure(state='disabled')
+        self._mac_info_btn.configure(state='disabled')
+        self._flash_status_btn.configure(state='disabled')
         self._erase_btn.configure(state='disabled')
         self._flash_btn.configure(state='disabled')
 
@@ -486,16 +490,31 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         self._chip_info_btn.configure(state='normal')
         self._memory_info_btn.configure(state='normal')
+        self._mac_info_btn.configure(state='normal')
+        self._flash_status_btn.configure(state='normal')
         self._erase_btn.configure(state='normal')
         self._flash_btn.configure(state='normal')
 
     def _on_thread_complete(self) -> None:
         """
-        Handles the completion of a thread execution.
+        Handle the completion of a thread, perform the necessary cleanup and post-processing.
 
         :return: None
         """
         self._enable_buttons()
+
+        if self.__is_flashing_firmware:
+            self.__is_flashing_firmware = False
+
+            if VERIFICATION_MODE and self.__device_path:
+                info(f'Verifying firmware on {self.__device_path}')
+                try:
+                    with MicroPythonREPL(port=self.__device_path) as repl:
+                        version = repl.get_version()
+                        self._console_queue.put(f'\n[INFO]: {version}')
+                except Exception as err:
+                    error(f'Failed to verify firmware on {self.__device_path}: {err}')
+                    self._console_queue.put(f'\n[ERROR]: {err}')
 
     def _run_threaded_command(self, command: List[str]) -> None:
         """
@@ -544,7 +563,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if process.returncode != 0:
             error_output = process.stderr.read().strip()
-            self._console_queue.put(f"[ERROR]: {error_output}")
+            self._console_queue.put(f'[ERROR]: {error_output}')
 
         self.after(0, self._on_thread_complete)
 
@@ -671,4 +690,5 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         debug(f'Running esptool command: {cmd}')
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
+        self.__is_flashing_firmware = True
         self._run_threaded_command(command=cmd)
