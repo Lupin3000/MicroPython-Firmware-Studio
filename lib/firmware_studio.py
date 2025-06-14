@@ -80,6 +80,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status', command=self._get_flash_status)
         self._flash_status_btn.pack(padx=10, pady=5)
+        self._flash_status_btn.pack_forget()
 
         # Left Bottom Frame
         self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
@@ -272,6 +273,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         if self._expert_mode.get():
             debug('Expert mode enabled')
             self.__expert_mode = True
+            self._flash_status_btn.pack(padx=10, pady=5)
             self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
             self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
             self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -287,6 +289,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         else:
             debug('Expert mode disabled')
             self.__expert_mode = False
+            self._flash_status_btn.pack_forget()
             self._flash_mode_label.grid_remove()
             self._flash_mode_option.grid_remove()
             self._flash_mode_info.grid_remove()
