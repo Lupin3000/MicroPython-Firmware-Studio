@@ -1,5 +1,10 @@
 DEFAULT_URL: str = "https://micropython.org/download/"
 CONFIGURED_DEVICES: dict = {
+    "ESP8266": {
+        "name": "esp8266",
+        "write_flash": 0,
+        "url": "https://micropython.org/download/ESP8266_GENERIC/"
+    },
     "ESP32": {
         "name": "esp32",
         "write_flash": 0x1000,

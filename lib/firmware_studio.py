@@ -9,7 +9,7 @@ from typing import Optional, List
 from PIL import Image
 from threading import Thread
 from queue import Queue, Empty
-from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu
+from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
 from lib.base_ui import BaseUI
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
@@ -25,8 +25,17 @@ class MicroPythonFirmwareStudio(BaseUI):
 
     :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
     :type _BAUDRATE_OPTIONS: list
+    :ivar _FLASH_MODE_OPTIONS: The list of available flash mode options.
+    :type _FLASH_MODE_OPTIONS: list
+    :ivar _FLASH_FREQUENCY_OPTIONS: The list of available flash frequency options.
+    :type _FLASH_FREQUENCY_OPTIONS: list
+    :ivar _FLASH_SIZE_OPTIONS: The list of available flash size options.
+    :type _FLASH_SIZE_OPTIONS: list
     """
     _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
+    _FLASH_MODE_OPTIONS: list = ["keep", "qio", "qout", "dio", "dout"]
+    _FLASH_FREQUENCY_OPTIONS: list = ["keep", "40m", "26m", "20m", "80m"]
+    _FLASH_SIZE_OPTIONS: list = ["keep", "detect", "1MB", "2MB", "4MB", "8MB", "16MB"]
 
     def __init__(self):
         """
@@ -41,6 +50,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__selected_baudrate: Optional[int] = 460800
         self.__selected_firmware: Optional[str] = None
         self.__url: str = DEFAULT_URL
+        self.__expert_mode: bool = False
 
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
@@ -84,6 +94,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._right_label.grid(row=0, column=0, columnspan=5, padx=10, pady=10, sticky="w")
         self._right_label.configure(font=FONT_CATEGORY)
 
+        self._expert_mode = CTkSwitch(self._right_frame, text='Expert Mode', command=self.toggle_expert_mode)
+        self._expert_mode.grid(row=0, column=5, padx=10, pady=5, sticky="e")
+
         # Right Frame (chip select)
         self._chip_label = CTkLabel(self._right_frame, text='Step 1:')
         self._chip_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
@@ -98,7 +111,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
         self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
-        self._chip_info.grid(row=1, column=3, columnspan=2, padx=10, pady=5, sticky="w")
+        self._chip_info.grid(row=1, column=3, columnspan=3, padx=10, pady=5, sticky="w")
         self._chip_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (firmware select)
@@ -118,7 +131,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._link_label.bind("<Button-1>", self.open_url)
 
         self._firmware_info = CTkLabel(self._right_frame, text='and select the firmware file to upload')
-        self._firmware_info.grid(row=2, column=4, padx=(5, 10), pady=5, sticky="w")
+        self._firmware_info.grid(row=2, column=4, columnspan=2, padx=(5, 10), pady=5, sticky="w")
         self._firmware_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (baudrate select)
@@ -135,7 +148,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._baudrate_checkbox.select()
 
         self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
-        self._baudrate_info.grid(row=3, column=3, columnspan=2, padx=10, pady=5, sticky="w")
+        self._baudrate_info.grid(row=3, column=3, columnspan=3, padx=10, pady=5, sticky="w")
         self._baudrate_info.configure(font=FONT_DESCRIPTION)
 
         # Right Frame (sector select)
@@ -150,16 +163,68 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
 
         self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
-        self._sector_info.grid(row=4, column=3, columnspan=2, padx=10, pady=5, sticky="w")
+        self._sector_info.grid(row=4, column=3, columnspan=3, padx=10, pady=5, sticky="w")
         self._sector_info.configure(font=FONT_DESCRIPTION)
+
+        # Right Frame (expert mode)
+        self._flash_mode_label = CTkLabel(self._right_frame, text='Step 5:')
+        self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
+        self._flash_mode_label.grid_remove()
+
+        self._flash_mode_option = CTkOptionMenu(self._right_frame, values=self._FLASH_MODE_OPTIONS, width=150)
+        self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
+        self._flash_mode_option.set("keep")
+        self._flash_mode_option.grid_remove()
+
+        self._flash_mode_info = CTkLabel(self._right_frame, text='Choose the data transfer mode for flashing')
+        self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self._flash_mode_info.grid_remove()
+
+        self._flash_frequency_label = CTkLabel(self._right_frame, text='Step 6:')
+        self._flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
+        self._flash_frequency_label.grid_remove()
+
+        self._flash_frequency_option = CTkOptionMenu(self._right_frame, values=self._FLASH_FREQUENCY_OPTIONS, width=150)
+        self._flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
+        self._flash_frequency_option.set("keep")
+        self._flash_frequency_option.grid_remove()
+
+        self._flash_frequency_info = CTkLabel(self._right_frame, text='Set the clock speed during flash operations')
+        self._flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self._flash_frequency_info.grid_remove()
+
+        self._flash_size_label = CTkLabel(self._right_frame, text='Step 7:')
+        self._flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
+        self._flash_size_label.grid_remove()
+
+        self._flash_size_option = CTkOptionMenu(self._right_frame, values=self._FLASH_SIZE_OPTIONS, width=150)
+        self._flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
+        self._flash_size_option.set("detect")
+        self._flash_size_option.grid_remove()
+
+        self._flash_size_info = CTkLabel(self._right_frame, text='Specify or detect the flash memory size')
+        self._flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self._flash_size_info.grid_remove()
+
+        self._erase_before_label = CTkLabel(self._right_frame, text='Step 8:')
+        self._erase_before_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
+        self._erase_before_label.grid_remove()
+
+        self._erase_before_switch = CTkSwitch(self._right_frame, text='')
+        self._erase_before_switch.grid(row=8, column=1, padx=10, pady=5, sticky="w")
+        self._erase_before_switch.grid_remove()
+
+        self._erase_before_info = CTkLabel(self._right_frame, text='Erase flash before flashing firmware')
+        self._erase_before_info.grid(row=8, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self._erase_before_info.grid_remove()
 
         # Right Frame (seperator)
         self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
-        self._separator_canvas.grid(row=5, columnspan=5, sticky="ew", padx=10, pady=10)
+        self._separator_canvas.grid(row=9, columnspan=6, sticky="ew", padx=10, pady=10)
 
         # Right Frame (start firmware flash)
         self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware', command=self._flash_firmware)
-        self._flash_btn.grid(row=6, column=1, columnspan=4, padx=10, pady=5, sticky="w")
+        self._flash_btn.grid(row=10, column=1, columnspan=5, padx=10, pady=5, sticky="w")
 
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
@@ -197,6 +262,43 @@ class MicroPythonFirmwareStudio(BaseUI):
             return ""
 
         return "break"
+
+    def toggle_expert_mode(self) -> None:
+        """
+        Toggles between expert mode and standard mode in the user interface.
+
+        :return: None
+        """
+        if self._expert_mode.get():
+            debug('Expert mode enabled')
+            self.__expert_mode = True
+            self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
+            self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
+            self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self._flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
+            self._flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
+            self._flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self._flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
+            self._flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
+            self._flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self._erase_before_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
+            self._erase_before_switch.grid(row=8, column=1, padx=10, pady=5, sticky="w")
+            self._erase_before_info.grid(row=8, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        else:
+            debug('Expert mode disabled')
+            self.__expert_mode = False
+            self._flash_mode_label.grid_remove()
+            self._flash_mode_option.grid_remove()
+            self._flash_mode_info.grid_remove()
+            self._flash_frequency_label.grid_remove()
+            self._flash_frequency_option.grid_remove()
+            self._flash_frequency_info.grid_remove()
+            self._flash_size_label.grid_remove()
+            self._flash_size_option.grid_remove()
+            self._flash_size_info.grid_remove()
+            self._erase_before_label.grid_remove()
+            self._erase_before_switch.grid_remove()
+            self._erase_before_info.grid_remove()
 
     def _set_device(self, selected_device: Optional[str]) -> None:
         """
@@ -551,5 +653,19 @@ class MicroPythonFirmwareStudio(BaseUI):
                'write_flash', self._sector_input.get().strip(),
                self.__selected_firmware]
 
+        if self.__expert_mode:
+            flash_mode = self._flash_mode_option.get().strip()
+            flash_freq = self._flash_frequency_option.get().strip()
+            flash_size = self._flash_size_option.get().strip()
+
+            expert_args = ['-fm', flash_mode, '-ff', flash_freq, '-fs', flash_size]
+
+            if self._erase_before_switch.get():
+                expert_args.append('-e')
+
+            index = cmd.index('write_flash') + 1
+            cmd = cmd[:index] + expert_args + cmd[index:]
+
+        debug(f'Running esptool command: {cmd}')
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self._run_threaded_command(command=cmd)
