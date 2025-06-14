@@ -4,65 +4,32 @@
 [![Static](https://img.shields.io/badge/esptool-==4.8.1-green)](https://docs.espressif.com/projects/esptool/en/latest/esp32/)
 [![Static](https://img.shields.io/badge/python-==3.12.2-green)](https://python.org)
 
-The **MicroPython Firmware Studio** is a user-friendly application designed for the management and configuration of ESP microcontrollers. This software enables efficient firmware development and seamless flashing of MicroPython firmware onto ESP chips.
+## Overview
 
-## Important
+**MicroPython Firmware Studio** is a modern, cross-platform GUI application designed to simplify the process of configuring, managing, and flashing MicroPython firmware to microcontroller devices.
 
-**MicroPython Firmware Studio is provided without any guarantee.** Use it at your own risk. The developer assumes no liability for any damage or legal consequences resulting from using the software. Please ensure compliance with all applicable laws and regulations when using this tool.
+### Features
 
-## Supported Devices
+- Clean and intuitive GUI
+- Supporting device detection
+- Firmware download support
+- Simple and expert mode can be set at any time
+- Compatible with many ESP microcontrollers
+- Configurable features, appearance and device and OS support
+- Open source extensibility for community-driven growth
+
+### Requirements
+
+- [Python 3](https://www.python.org)
+- [Silicon Labs CP210x VCP drivers](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads)
+
+### Supported Devices
 
 Supported devices include ESP chips in the variants ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C3, and ESP32-C6, with specific flash sector configurations.
 
 ## Installation
 
-### Prerequisite
-
-> To communicate with microcontrollers via USB, you may need to install additional drivers on your system.
-> 
-> As this software is built on Python, please ensure you have [Python](https://www.python.org) >= 3.12.x installed.
-
-**macOS**
-
-Install the [Silicon Labs CP210x VCP drivers](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) or the corresponding drivers provided by your microcontroller manufacturer.
-
-**Linux**
-
-Linux typically does not require VCP drivers, as they are built into the kernel. However, you need to take a few steps to enable proper communication.
-
-In Linux systems you need to execute the following commands (_e.q. as root_):
-
-```shell
-# update system
-$ apt update && apt upgrade -y
-
-# install required Python modules
-$ apt install -y python3-pip python3-venv python3-tk
-
-# enable dialout permissions
-$ usermod -aG dialout <USER>
-
-# verify user group (optional)
-$ groups <USER>
-```
-
-**Windows**
-
-Also, install the [Silicon Labs CP210x VCP drivers](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads).
-
-If you use Python virtualenv, execute as the Administrator the following command in cmd:
-
-```shell
-# Allows all scripts to run, including unsigned or downloaded ones (unsecure)
-> Set-ExecutionPolicy Unrestricted -Force
-```
-
-It is very unsecure! Additionally, you could do the same (_temporary_) as a user:
-
-```shell
-# Allows all scripts to run, including unsigned or downloaded ones (temporary)
-> Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-```
+On the [Wiki](https://github.com/Lupin3000/MicroPython-Firmware-Studio/wiki/Installation), you will find detailed instruction for macOS, Linux, and Windows.
 
 ### Quick installation
 
@@ -123,3 +90,7 @@ After MicroPython firmware flashing was successful you can use `rshell` to conne
 > Preview: Windows
 > 
 > ![Screenshot Windows](img/screenshot_windows.jpg)
+
+## Important
+
+**MicroPython Firmware Studio is provided without any guarantee.** Use it at your own risk. The developer assumes no liability for any damage or legal consequences resulting from using the software. Please ensure compliance with all applicable laws and regulations when using this tool.
