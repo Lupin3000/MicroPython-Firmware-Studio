@@ -64,17 +64,12 @@ $ .\.venv\Scripts\activate
 ## Usage
 
 > Start the application using the command in your terminal within the configured Python environment.
+> 
+> Look at the [Wiki](https://github.com/Lupin3000/MicroPython-Firmware-Studio/wiki/Run-application) for more details
 
 ```shell
 # run application
 (.venv) $ python3 main.py
-```
-
-After MicroPython firmware flashing was successful you can use `rshell` to connect.
-
-```shell
-# connect to device
-(.venv) $ rshell -p <PORT>
 ```
 
 ## Preview
