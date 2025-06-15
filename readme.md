@@ -27,6 +27,10 @@
 
 Supported devices include ESP chips in the variants ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C3, and ESP32-C6, with specific flash sector configurations.
 
+**Important**
+
+You can add/remove the support of microcontrollers in file `device_configuration.py`.
+
 ## Installation
 
 On the [Wiki](https://github.com/Lupin3000/MicroPython-Firmware-Studio/wiki/Installation), you will find detailed instruction for macOS, Linux, and Windows.
