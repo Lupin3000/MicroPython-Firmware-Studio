@@ -1,6 +1,7 @@
 from logging import getLogger, debug, error
 from platform import system
 from customtkinter import CTk, CTkFrame
+from tkinter import Event
 from config.application_configuration import TITLE
 from config.os_configuration import OPERATING_SYSTEM
 
@@ -64,6 +65,24 @@ class BaseUI(CTk):
         self._bottom_frame = CTkFrame(self)
         self._bottom_frame.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
         self._bottom_frame.grid_columnconfigure(0, weight=1)
+
+    @staticmethod
+    def _block_text_input(event: Event) -> str:
+        """
+        Filters keyboard input events to block specific keys or combinations.
+
+        :param event: A keyboard event containing information such as the key pressed.
+        :type event: Event
+        :return: A string indicating whether the keypress should be stopped or allowed.
+        :rtype: str
+        """
+        is_copy = (event.state & 0x000C) and event.keysym.lower() == 'c'
+        is_select_all = (event.state & 0x000C) and event.keysym.lower() == 'a'
+
+        if is_copy or is_select_all:
+            return ""
+
+        return "break"
 
     def destroy(self) -> None:
         """
