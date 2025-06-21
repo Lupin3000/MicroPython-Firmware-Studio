@@ -611,30 +611,32 @@ class MicroPythonFirmwareStudio(BaseUI):
         :return: None
         """
         debug('Get MicroPython version')
-        self._disable_buttons()
         self._delete_console()
+
+        if not self.__device_path:
+            error('No device selected!')
+            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
+            return
+
+        self._disable_buttons()
         self._console_text.insert("end", f'[INFO] Getting MicroPython version...\n', "info")
 
-        if self.__device_path:
-            def task():
-                try:
-                    with MicroPythonVersion(port=self.__device_path) as mpt:
-                        version = mpt.get_version()
+        def task():
+            try:
+                with MicroPythonVersion(port=self.__device_path) as mpt:
+                    version = mpt.get_version()
 
-                    if version:
-                        self._console_queue.put(version)
-                    else:
-                        self._console_queue.put('[ERROR] Could not get MicroPython version')
+                if version:
+                    self._console_queue.put(version)
+                else:
+                    self._console_queue.put('[ERROR] Could not get MicroPython version')
 
-                except Exception as e:
-                    self._console_queue.put(f'[ERROR] Exception: {e}')
-                finally:
-                    self.after(0, self._enable_buttons)
+            except Exception as e:
+                self._console_queue.put(f'[ERROR] Exception: {e}')
+            finally:
+                self.after(0, self._enable_buttons)
 
-            Thread(target=task, daemon=True).start()
-        else:
-            self._console_queue.put('[ERROR] No device selected!')
-            self._enable_buttons()
+        Thread(target=task, daemon=True).start()
 
     def _get_structure(self) -> None:
         """
@@ -643,29 +645,31 @@ class MicroPythonFirmwareStudio(BaseUI):
         :return: None
         """
         debug('Get device structure')
-        self._disable_buttons()
         self._delete_console()
+
+        if not self.__device_path:
+            error('No device selected!')
+            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
+            return
+
+        self._disable_buttons()
         self._console_text.insert("end", f'[INFO] Getting device structure...\n', "info")
 
-        if self.__device_path:
-            def task():
-                try:
-                    with MicroPythonFileStructure(port=self.__device_path) as mpt:
-                        structure = mpt.get_tree()
+        def task():
+            try:
+                with MicroPythonFileStructure(port=self.__device_path) as mpt:
+                    structure = mpt.get_tree()
 
-                    if structure and structure != "[ERROR] Timeout":
-                        self._console_queue.put(f'root\n{structure}')
-                    else:
-                        self._console_queue.put('[ERROR] Could not get device structure')
-                except Exception as e:
-                    self._console_queue.put(f'[ERROR] Exception: {e}')
-                finally:
-                    self.after(0, self._enable_buttons)
+                if structure and structure != "[ERROR] Timeout":
+                    self._console_queue.put(f'root\n{structure}')
+                else:
+                    self._console_queue.put('[ERROR] Could not get device structure')
+            except Exception as e:
+                self._console_queue.put(f'[ERROR] Exception: {e}')
+            finally:
+                self.after(0, self._enable_buttons)
 
-            Thread(target=task, daemon=True).start()
-        else:
-            self._console_queue.put('[ERROR] No device selected!')
-            self._enable_buttons()
+        Thread(target=task, daemon=True).start()
 
     def _erase_flash(self) -> None:
         """
