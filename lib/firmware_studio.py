@@ -11,11 +11,11 @@ from threading import Thread
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
 from lib.base_ui import BaseUI
+from lib.serial_get_micropython_version import MicroPythonVersion
+from lib.serial_get_file_structure import MicroPythonFileStructure
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
                                               CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
-from lib.serial_get_micropython_version import MicroPythonVersion
-from lib.serial_get_file_structure import MicroPythonFileStructure
 
 
 logger = getLogger(__name__)
