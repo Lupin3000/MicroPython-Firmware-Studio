@@ -13,8 +13,9 @@ from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox
 from lib.base_ui import BaseUI
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
-                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT, VERIFICATION_MODE)
-from lib.get_micropython_version import MicroPythonREPL
+                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
+from lib.get_micropython_version import MicroPythonVersion
+from lib.get_file_structure import MicroPythonFileStructure
 
 
 logger = getLogger(__name__)
@@ -52,7 +53,6 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__selected_firmware: Optional[str] = None
         self.__url: str = DEFAULT_URL
         self.__expert_mode: bool = False
-        self.__is_flashing_firmware: bool = False
 
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
@@ -83,6 +83,16 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status', command=self._get_flash_status)
         self._flash_status_btn.pack(padx=10, pady=5)
         self._flash_status_btn.pack_forget()
+
+        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', command=self._get_mp_version)
+        self._mp_version_btn.pack(padx=10, pady=5)
+        self._mp_version_btn.configure(fg_color='green')
+        self._mp_version_btn.pack_forget()
+
+        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', command=self._get_mp_structure)
+        self._mp_structure_btn.pack(padx=10, pady=5)
+        self._mp_structure_btn.configure(fg_color='green')
+        self._mp_structure_btn.pack_forget()
 
         # Left Bottom Frame
         self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
@@ -276,6 +286,8 @@ class MicroPythonFirmwareStudio(BaseUI):
             debug('Expert mode enabled')
             self.__expert_mode = True
             self._flash_status_btn.pack(padx=10, pady=5)
+            self._mp_version_btn.pack(padx=10, pady=5)
+            self._mp_structure_btn.pack(padx=10, pady=5)
             self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
             self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
             self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -292,6 +304,8 @@ class MicroPythonFirmwareStudio(BaseUI):
             debug('Expert mode disabled')
             self.__expert_mode = False
             self._flash_status_btn.pack_forget()
+            self._mp_version_btn.pack_forget()
+            self._mp_structure_btn.pack_forget()
             self._flash_mode_label.grid_remove()
             self._flash_mode_option.grid_remove()
             self._flash_mode_info.grid_remove()
@@ -479,6 +493,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._memory_info_btn.configure(state='disabled')
         self._mac_info_btn.configure(state='disabled')
         self._flash_status_btn.configure(state='disabled')
+        self._mp_version_btn.configure(state='disabled')
+        self._mp_structure_btn.configure(state='disabled')
         self._erase_btn.configure(state='disabled')
         self._flash_btn.configure(state='disabled')
 
@@ -492,6 +508,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._memory_info_btn.configure(state='normal')
         self._mac_info_btn.configure(state='normal')
         self._flash_status_btn.configure(state='normal')
+        self._mp_version_btn.configure(state='normal')
+        self._mp_structure_btn.configure(state='normal')
         self._erase_btn.configure(state='normal')
         self._flash_btn.configure(state='normal')
 
@@ -502,19 +520,6 @@ class MicroPythonFirmwareStudio(BaseUI):
         :return: None
         """
         self._enable_buttons()
-
-        if self.__is_flashing_firmware:
-            self.__is_flashing_firmware = False
-
-            if VERIFICATION_MODE and self.__device_path:
-                info(f'Verifying firmware on {self.__device_path}')
-                try:
-                    with MicroPythonREPL(port=self.__device_path) as repl:
-                        version = repl.get_version()
-                        self._console_queue.put(f'\n[INFO]: {version}')
-                except Exception as err:
-                    error(f'Failed to verify firmware on {self.__device_path}: {err}')
-                    self._console_queue.put(f'\n[ERROR]: {err}')
 
     def _run_threaded_command(self, command: List[str]) -> None:
         """
@@ -598,6 +603,69 @@ class MicroPythonFirmwareStudio(BaseUI):
         :return: None
         """
         self._run_esptool_command("read_flash_status")
+
+    def _get_mp_version(self) -> None:
+        """
+        Gets the MicroPython version and updates the console with the retrieved version information.
+
+        :return: None
+        """
+        debug('Get MicroPython version')
+        self._disable_buttons()
+        self._delete_console()
+        self._console_text.insert("end", f'[INFO] Getting MicroPython version...\n', "info")
+
+        if self.__device_path:
+            def task():
+                try:
+                    with MicroPythonVersion(port=self.__device_path) as mpt:
+                        version = mpt.get_version()
+
+                    if version:
+                        self._console_queue.put(version)
+                    else:
+                        self._console_queue.put('[ERROR] Could not get MicroPython version')
+
+                except Exception as e:
+                    self._console_queue.put(f'[ERROR] Exception: {e}')
+                finally:
+                    self.after(0, self._enable_buttons)
+
+            Thread(target=task, daemon=True).start()
+        else:
+            self._console_queue.put('[ERROR] No device selected!')
+            self._enable_buttons()
+
+    def _get_mp_structure(self) -> None:
+        """
+        Gets the file and folder structure of the device.
+
+        :return: None
+        """
+        debug('Get device structure')
+        self._disable_buttons()
+        self._delete_console()
+        self._console_text.insert("end", f'[INFO] Getting device structure...\n', "info")
+
+        if self.__device_path:
+            def task():
+                try:
+                    with MicroPythonFileStructure(port=self.__device_path) as mpt:
+                        structure = mpt.get_tree()
+
+                    if structure and structure != "[ERROR] Timeout":
+                        self._console_queue.put(f'root\n{structure}')
+                    else:
+                        self._console_queue.put('[ERROR] Could not get device structure')
+                except Exception as e:
+                    self._console_queue.put(f'[ERROR] Exception: {e}')
+                finally:
+                    self.after(0, self._enable_buttons)
+
+            Thread(target=task, daemon=True).start()
+        else:
+            self._console_queue.put('[ERROR] No device selected!')
+            self._enable_buttons()
 
     def _erase_flash(self) -> None:
         """
@@ -690,5 +758,4 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         debug(f'Running esptool command: {cmd}')
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
-        self.__is_flashing_firmware = True
         self._run_threaded_command(command=cmd)
