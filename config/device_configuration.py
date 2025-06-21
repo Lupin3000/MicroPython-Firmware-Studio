@@ -3,7 +3,7 @@ CONFIGURED_DEVICES: dict = {
     "ESP8266": {
         "name": "esp8266",
         "write_flash": 0,
-        "url": "https://micropython.org/download/ESP8266_GENERIC/"
+        "url": "https://micropython.org/download/?port=esp8266"
     },
     "ESP32": {
         "name": "esp32",
