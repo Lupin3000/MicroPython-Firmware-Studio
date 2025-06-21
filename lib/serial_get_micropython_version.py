@@ -1,6 +1,6 @@
 from logging import getLogger, debug
 from time import sleep
-from lib.serial_base import MicroPythonSerialBase
+from lib.base_serial import MicroPythonSerialBase
 
 
 logger = getLogger(__name__)

@@ -3,6 +3,7 @@ from time import sleep
 from logging import getLogger, error
 from types import TracebackType
 from typing import Optional, Type
+from config.application_configuration import SERIAL_RATE
 
 
 logger = getLogger(__name__)
@@ -13,7 +14,7 @@ class MicroPythonSerialBase:
     Manages a MicroPython serial connection.
     """
 
-    def __init__(self, port: str, baudrate: int = 115200, timeout: int = 2):
+    def __init__(self, port: str, baudrate: int = SERIAL_RATE, timeout: int = 2):
         """
         Initializes a serial connection with the provided port settings.
 

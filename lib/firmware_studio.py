@@ -14,8 +14,8 @@ from lib.base_ui import BaseUI
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
                                               CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
-from lib.get_micropython_version import MicroPythonVersion
-from lib.get_file_structure import MicroPythonFileStructure
+from lib.serial_get_micropython_version import MicroPythonVersion
+from lib.serial_get_file_structure import MicroPythonFileStructure
 
 
 logger = getLogger(__name__)
@@ -84,12 +84,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_status_btn.pack(padx=10, pady=5)
         self._flash_status_btn.pack_forget()
 
-        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', command=self._get_mp_version)
+        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', command=self._get_version)
         self._mp_version_btn.pack(padx=10, pady=5)
         self._mp_version_btn.configure(fg_color='green')
         self._mp_version_btn.pack_forget()
 
-        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', command=self._get_mp_structure)
+        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', command=self._get_structure)
         self._mp_structure_btn.pack(padx=10, pady=5)
         self._mp_structure_btn.configure(fg_color='green')
         self._mp_structure_btn.pack_forget()
@@ -604,7 +604,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         self._run_esptool_command("read_flash_status")
 
-    def _get_mp_version(self) -> None:
+    def _get_version(self) -> None:
         """
         Gets the MicroPython version and updates the console with the retrieved version information.
 
@@ -636,7 +636,7 @@ class MicroPythonFirmwareStudio(BaseUI):
             self._console_queue.put('[ERROR] No device selected!')
             self._enable_buttons()
 
-    def _get_mp_structure(self) -> None:
+    def _get_structure(self) -> None:
         """
         Gets the file and folder structure of the device.
 

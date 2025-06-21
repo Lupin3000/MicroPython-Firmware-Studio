@@ -1,6 +1,7 @@
 # application settings
 TITLE: str = 'MicroPython Firmware Studio'
 LOG_LEVEL: str = 'INFO'
+SERIAL_RATE: int = 115200
 
 # application colors
 APPEARANCE_MODE: str = 'dark'
