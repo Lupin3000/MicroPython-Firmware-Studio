@@ -92,9 +92,3 @@ class MicroPythonFileStructure(MicroPythonSerialBase):
         else:
             tree_output = out
         return tree_output.replace('\x04', '').rstrip()
-
-
-if __name__ == "__main__":
-    with MicroPythonFileStructure(port='/dev/cu.usbserial-0001') as mpt:
-        device_tree = mpt.get_tree()
-        print(f"Structure:\n{device_tree}")

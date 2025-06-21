@@ -75,9 +75,3 @@ class MicroPythonVersion(MicroPythonSerialBase):
         """
         output = self._send_command("import sys; print(sys.version)")
         return self._extract_version(output)
-
-
-if __name__ == "__main__":
-    with MicroPythonVersion(port='/dev/cu.usbserial-0001') as mpt:
-        version = mpt.get_version()
-        print(f"Version:\n{version}")
