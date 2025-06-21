@@ -29,5 +29,10 @@ CONFIGURED_DEVICES: dict = {
         "name": "esp32c6",
         "write_flash": 0,
         "url": "https://micropython.org/download/?mcu=esp32c6"
+    },
+    "Lilygo TTGO LoRa32": {
+        "name": "esp32",
+        "write_flash": 0x1000,
+        "url": "https://micropython.org/download/?vendor=LILYGO"
     }
 }
