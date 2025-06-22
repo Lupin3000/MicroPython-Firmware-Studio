@@ -38,7 +38,7 @@ class MicroPythonSerialBase:
         """
         try:
             self._ser = Serial(self._port, self._baudrate, timeout=self._timeout)
-            sleep(2)
+            sleep(self._timeout)
             return True
         except Exception as err:
             error(f"[ERROR] connection missed: {err}")

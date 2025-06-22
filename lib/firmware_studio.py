@@ -164,7 +164,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._baudrate_info.grid(row=3, column=3, columnspan=3, padx=10, pady=5, sticky="w")
         self._baudrate_info.configure(font=FONT_DESCRIPTION)
 
-        # Right Frame (sector select)
+        # Right Frame (sector selects)
         self._sector_label = CTkLabel(self._right_frame, text='Step 4:')
         self._sector_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
 
@@ -262,11 +262,13 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         Opens a new web browser tab or window using the URL specified in the class attribute.
 
-        :param event: The event instance triggering this method
+        :param event: The event instance is triggering this method
         :type event: Event
         :return: None
         """
         _ = event
+
+        debug(f'Opening URL: {self.__url}')
         open_new(url=self.__url)
 
     def toggle_expert_mode(self) -> None:
