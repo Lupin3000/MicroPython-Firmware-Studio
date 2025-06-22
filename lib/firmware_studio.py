@@ -55,9 +55,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__expert_mode: bool = False
 
         self.esptool_runner = CommandRunner(
-            on_output=self._handle_output,
-            on_error=self._handle_error,
-            on_complete=self._handle_complete
+            on_output=self._handle_esptool_output,
+            on_error=self._handle_esptool_error,
+            on_complete=self._handle_esptool_complete
         )
 
         # Top Frame
@@ -81,19 +81,19 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID')
         self._chip_info_btn.pack(padx=10, pady=5)
-        self._chip_info_btn.configure(command=lambda: self._run_esptool_command("chip_id"))
+        self._chip_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("chip_id"))
 
         self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID')
         self._memory_info_btn.pack(padx=10, pady=5)
-        self._memory_info_btn.configure(command=lambda: self._run_esptool_command("flash_id"))
+        self._memory_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("flash_id"))
 
         self._mac_info_btn = CTkButton(self._left_top_frame, text='MAC Address')
         self._mac_info_btn.pack(padx=10, pady=5)
-        self._mac_info_btn.configure(command=lambda: self._run_esptool_command("read_mac"))
+        self._mac_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("read_mac"))
 
         self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status')
         self._flash_status_btn.pack(padx=10, pady=5)
-        self._flash_status_btn.configure(command=lambda: self._run_esptool_command("read_flash_status"))
+        self._flash_status_btn.configure(command=lambda: self._prepare_simple_esptool_command("read_flash_status"))
         self._flash_status_btn.pack_forget()
 
         self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', fg_color='green')
@@ -113,7 +113,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash')
         self._erase_btn.pack(padx=10, pady=5)
-        self._erase_btn.configure(command=lambda: self._run_esptool_command("erase_flash"))
+        self._erase_btn.configure(command=lambda: self._prepare_simple_esptool_command("erase_flash"))
 
         # Right Frame
         self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
@@ -147,7 +147,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._firmware_btn = CTkButton(self._right_frame, text='Select Firmware', width=150)
         self._firmware_btn.grid(row=2, column=1, padx=10, pady=5, sticky="w")
-        self._firmware_btn.configure(command=self._set_firmware)
+        self._firmware_btn.configure(command=self._handle_firmware_selection)
 
         self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._firmware_checkbox.grid(row=2, column=2, padx=10, pady=5, sticky="w")
@@ -184,7 +184,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self._sector_input = CTkEntry(self._right_frame, width=150)
         self._sector_input.grid(row=4, column=1, padx=10, pady=5, sticky="w")
-        self._sector_input.bind("<KeyRelease>", self._on_sector_input_change)
+        self._sector_input.bind("<KeyRelease>", self._handle_sector_input)
 
         self._sector_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
         self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
@@ -252,7 +252,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # Right Frame (start firmware flash)
         self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware')
         self._flash_btn.grid(row=10, column=1, columnspan=5, padx=10, pady=5, sticky="w")
-        self._flash_btn.configure(command=self._flash_firmware)
+        self._flash_btn.configure(command=self._prepare_flash_firmware_command)
 
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
@@ -347,6 +347,44 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self.after(100, self._poll_console_queue)
 
+    def _delete_console(self) -> None:
+        """
+        Deletes all the content from the console text box.
+
+        :return: None
+        """
+        self._console_text.delete("1.0", "end")
+
+    def _disable_buttons(self) -> None:
+        """
+        Disables specific buttons in the user interface by changing their state to 'disabled'.
+
+        :return: None
+        """
+        self._chip_info_btn.configure(state='disabled')
+        self._memory_info_btn.configure(state='disabled')
+        self._mac_info_btn.configure(state='disabled')
+        self._flash_status_btn.configure(state='disabled')
+        self._mp_version_btn.configure(state='disabled')
+        self._mp_structure_btn.configure(state='disabled')
+        self._erase_btn.configure(state='disabled')
+        self._flash_btn.configure(state='disabled')
+
+    def _enable_buttons(self) -> None:
+        """
+        Enables specific UI buttons by changing their state to 'normal'.
+
+        :return: None
+        """
+        self._chip_info_btn.configure(state='normal')
+        self._memory_info_btn.configure(state='normal')
+        self._mac_info_btn.configure(state='normal')
+        self._flash_status_btn.configure(state='normal')
+        self._mp_version_btn.configure(state='normal')
+        self._mp_structure_btn.configure(state='normal')
+        self._erase_btn.configure(state='normal')
+        self._flash_btn.configure(state='normal')
+
     def _search_devices(self) -> None:
         """
         Updates the device dropdown menu with a list of available devices. If there are no
@@ -433,7 +471,7 @@ class MicroPythonFirmwareStudio(BaseUI):
             self.__selected_baudrate = None
             self._baudrate_checkbox.deselect()
 
-    def _on_sector_input_change(self, event: Optional[Event] = None) -> None:
+    def _handle_sector_input(self, event: Optional[Event] = None) -> None:
         """
         Handles changes to the sector input field and updates the sector checkbox
         state accordingly.
@@ -449,7 +487,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         except ValueError:
             self._sector_checkbox.deselect()
 
-    def _set_firmware(self) -> None:
+    def _handle_firmware_selection(self) -> None:
         """
         Handles selection and association of a firmware file in the user interface.
 
@@ -470,72 +508,6 @@ class MicroPythonFirmwareStudio(BaseUI):
         else:
             self.__selected_firmware = None
             self._firmware_checkbox.deselect()
-
-    def _delete_console(self) -> None:
-        """
-        Deletes all the content from the console text box.
-
-        :return: None
-        """
-        self._console_text.delete("1.0", "end")
-
-    def _disable_buttons(self) -> None:
-        """
-        Disables specific buttons in the user interface by changing their state to 'disabled'.
-
-        :return: None
-        """
-        self._chip_info_btn.configure(state='disabled')
-        self._memory_info_btn.configure(state='disabled')
-        self._mac_info_btn.configure(state='disabled')
-        self._flash_status_btn.configure(state='disabled')
-        self._mp_version_btn.configure(state='disabled')
-        self._mp_structure_btn.configure(state='disabled')
-        self._erase_btn.configure(state='disabled')
-        self._flash_btn.configure(state='disabled')
-
-    def _enable_buttons(self) -> None:
-        """
-        Enables specific UI buttons by changing their state to 'normal'.
-
-        :return: None
-        """
-        self._chip_info_btn.configure(state='normal')
-        self._memory_info_btn.configure(state='normal')
-        self._mac_info_btn.configure(state='normal')
-        self._flash_status_btn.configure(state='normal')
-        self._mp_version_btn.configure(state='normal')
-        self._mp_structure_btn.configure(state='normal')
-        self._erase_btn.configure(state='normal')
-        self._flash_btn.configure(state='normal')
-
-    def _handle_output(self, text: str) -> None:
-        """
-        Handles the output by scheduling a task for posting the text to the console queue.
-
-        :param text: The text to be posted to the console queue.
-        :type text: str
-        :return: None
-        """
-        self.after(0, lambda: self._console_queue.put(text))
-
-    def _handle_error(self, text: str) -> None:
-        """
-        Handles errors by updating the console text widget with the provided error message.
-
-        :param text: The error message to be displayed in the console.
-        :type text: str
-        :return: None
-        """
-        self.after(0, lambda: self._console_text.insert("end", f'[ERROR] {text}\n', "error"))
-
-    def _handle_complete(self) -> None:
-        """
-        Handles the completion of a specific task by enabling buttons.
-
-        :return: None
-        """
-        self.after(0, lambda: self._enable_buttons())
 
     def _get_version(self) -> None:
         """
@@ -604,11 +576,39 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         Thread(target=task, daemon=True).start()
 
-    def _run_esptool_command(self, command_name: str) -> None:
+    def _handle_esptool_output(self, text: str) -> None:
         """
-        Executes an esptool command using the specified `command_name`.
+        Handles the output by scheduling a task for posting the text to the console queue.
 
-        :param command_name: The name of the esptool command to execute ("chip_id", "flash_id", "erase_flash").
+        :param text: The text to be posted to the console queue.
+        :type text: str
+        :return: None
+        """
+        self.after(0, lambda: self._console_queue.put(text))
+
+    def _handle_esptool_error(self, text: str) -> None:
+        """
+        Handles errors by updating the console text widget with the provided error message.
+
+        :param text: The error message to be displayed in the console.
+        :type text: str
+        :return: None
+        """
+        self.after(0, lambda: self._console_text.insert("end", f'[ERROR] {text}\n', "error"))
+
+    def _handle_esptool_complete(self) -> None:
+        """
+        Handles the completion of a specific task by enabling buttons.
+
+        :return: None
+        """
+        self.after(0, lambda: self._enable_buttons())
+
+    def _prepare_simple_esptool_command(self, command_name: str) -> None:
+        """
+        Validate and prepares a simple esptool command based on user input.
+
+        :param command_name: The name of the command to be executed.
         :type command_name: str
         :return: None
         """
@@ -637,9 +637,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self.esptool_runner.run_threaded_command(command=cmd)
 
-    def _flash_firmware(self) -> None:
+    def _prepare_flash_firmware_command(self) -> None:
         """
-        Internal method to flash firmware to the connected device.
+        Validate and prepares the esptool flash firmware command based on user input.
 
         :return: None
         """
