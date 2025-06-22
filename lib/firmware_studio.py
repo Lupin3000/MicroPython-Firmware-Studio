@@ -323,7 +323,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         recent message.
 
         :raises Empty: This is silently handled within the method logic when the queue is empty.
-        :return: This method does not return any value.
+        :return: None
         """
         try:
             while True:
