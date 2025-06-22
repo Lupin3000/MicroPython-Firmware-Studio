@@ -272,6 +272,17 @@ class MicroPythonFirmwareStudio(BaseUI):
         # poll the console queue for new lines
         self._poll_console_queue()
 
+    def open_url(self, event: Event) -> None:
+        """
+        Opens a new web browser tab or window using the URL specified in the class attribute.
+
+        :param event: The event instance triggering this method
+        :type event: Event
+        :return: None
+        """
+        _ = event
+        open_new(url=self.__url)
+
     def toggle_expert_mode(self) -> None:
         """
         Toggles between expert mode and standard mode in the user interface.
@@ -314,6 +325,55 @@ class MicroPythonFirmwareStudio(BaseUI):
             self._erase_before_label.grid_remove()
             self._erase_before_switch.grid_remove()
             self._erase_before_info.grid_remove()
+
+    def _poll_console_queue(self) -> None:
+        """
+        Polls the console queue for new messages and updates the text widget
+        with messages retrieved from the queue. Continuously checks the
+        console queue at regular intervals, inserts retrieved lines into
+        the text widget, and ensures the view stays scrolled to the most
+        recent message.
+
+        :raises Empty: This is silently handled within the method logic when the queue is empty.
+        :return: This method does not return any value.
+        """
+        try:
+            while True:
+                line = self._console_queue.get_nowait()
+                self._console_text.insert("end", f'{line}\n', "normal")
+                self._console_text.see("end")
+        except Empty:
+            pass
+
+        self.after(100, self._poll_console_queue)
+
+    def _search_devices(self) -> None:
+        """
+        Updates the device dropdown menu with a list of available devices. If there are no
+        connected devices, sets "No devices found" as the only dropdown value.
+
+        :return: None
+        """
+        current_selection = self._device_option.get()
+
+        if self._current_platform in ["Linux", "Darwin"]:
+            devices = glob(self._device_search_path)
+        else:
+            devices = [port.device for port in list_ports.comports()]
+
+        if not devices:
+            devices = ['No devices found']
+        else:
+            devices.insert(0, 'Select Device')
+
+        debug(f'Devices: {devices}')
+        self._device_option.configure(values=devices)
+
+        if current_selection in devices:
+            self._device_option.set(current_selection)
+        else:
+            self._device_option.set(devices[0])
+            self._set_device(None)
 
     def _set_device(self, selected_device: Optional[str]) -> None:
         """
@@ -410,66 +470,6 @@ class MicroPythonFirmwareStudio(BaseUI):
         else:
             self.__selected_firmware = None
             self._firmware_checkbox.deselect()
-
-    def open_url(self, event: Event) -> None:
-        """
-        Opens a new web browser tab or window using the URL specified in the class attribute.
-
-        :param event: The event instance triggering this method
-        :type event: Event
-        :return: None
-        """
-        _ = event
-        open_new(url=self.__url)
-
-    def _poll_console_queue(self) -> None:
-        """
-        Polls the console queue for new messages and updates the text widget
-        with messages retrieved from the queue. Continuously checks the
-        console queue at regular intervals, inserts retrieved lines into
-        the text widget, and ensures the view stays scrolled to the most
-        recent message.
-
-        :raises Empty: This is silently handled within the method logic when the queue is empty.
-        :return: This method does not return any value.
-        """
-        try:
-            while True:
-                line = self._console_queue.get_nowait()
-                self._console_text.insert("end", f'{line}\n', "normal")
-                self._console_text.see("end")
-        except Empty:
-            pass
-
-        self.after(100, self._poll_console_queue)
-
-    def _search_devices(self) -> None:
-        """
-        Updates the device dropdown menu with a list of available devices. If there are no
-        connected devices, sets "No devices found" as the only dropdown value.
-
-        :return: None
-        """
-        current_selection = self._device_option.get()
-
-        if self._current_platform in ["Linux", "Darwin"]:
-            devices = glob(self._device_search_path)
-        else:
-            devices = [port.device for port in list_ports.comports()]
-
-        if not devices:
-            devices = ['No devices found']
-        else:
-            devices.insert(0, 'Select Device')
-
-        debug(f'Devices: {devices}')
-        self._device_option.configure(values=devices)
-
-        if current_selection in devices:
-            self._device_option.set(current_selection)
-        else:
-            self._device_option.set(devices[0])
-            self._set_device(None)
 
     def _delete_console(self) -> None:
         """
