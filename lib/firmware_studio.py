@@ -4,15 +4,13 @@ from logging import getLogger, debug, info, error
 from os.path import expanduser
 from tkinter import filedialog, Canvas, Event
 from webbrowser import open_new
-from typing import Optional
+from typing import Optional, Callable
 from PIL import Image
-from threading import Thread
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
 from lib.base_ui import BaseUI
-from lib.esptool_runner import CommandRunner
-from lib.serial_get_micropython_version import MicroPythonVersion
-from lib.serial_get_file_structure import MicroPythonFileStructure
+from lib.esptool_command_runner import CommandRunner
+from lib.serial_command_runner import SerialCommandRunner
 from config.device_configuration import (BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS, FLASH_FREQUENCY_OPTIONS,
                                          FLASH_SIZE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES)
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
@@ -497,13 +495,33 @@ class MicroPythonFirmwareStudio(BaseUI):
             self.__selected_firmware = None
             self._firmware_checkbox.deselect()
 
-    def _get_version(self) -> None:
+    def _handle_serial_output(self, output: str, context: Optional[str] = None) -> None:
         """
-        Gets the MicroPython version and updates the console with the retrieved version information.
+        Handles the processing and queuing of serial output in the application.
 
+        :param output: The output to be queued for processing.
+        :type output: str
+        :param context: An optional context string indicating the type of output.
+        :type context: Optional[str]
         :return: None
         """
-        debug('Get MicroPython version')
+        if context == "structure":
+            output = f"root\n{output}"
+
+        self._console_queue.put(output)
+        self.after(0, self._enable_buttons)
+
+    def _run_serial_task(self, info_text: str, command: Callable[[SerialCommandRunner], None]) -> None:
+        """
+        Executes a serial task by running a provided command callable for a serial command runner.
+
+        :param info_text: The text to be displayed in the console indicating the task being executed.
+        :type info_text: str
+        :param command: The command callable to be executed for the serial command runner.
+        :type command: Callable[[SerialCommandRunner], None]
+        :return: None
+        """
+        info(info_text)
         self._delete_console()
 
         if not self.__device_path:
@@ -512,57 +530,38 @@ class MicroPythonFirmwareStudio(BaseUI):
             return
 
         self._disable_buttons()
-        self._console_text.insert("end", f'[INFO] Getting MicroPython version...\n', "info")
+        self._console_text.insert("end", f'[INFO] {info_text}...\n', "info")
 
-        def task():
-            try:
-                with MicroPythonVersion(port=self.__device_path) as mpt:
-                    version = mpt.get_version()
+        runner = SerialCommandRunner()
+        command(runner)
 
-                if version:
-                    self._console_queue.put(version)
-                else:
-                    self._console_queue.put('[ERROR] Could not get MicroPython version')
+    def _get_version(self) -> None:
+        """
+        Triggers a task to get the MicroPython version and process its output.
 
-            except Exception as e:
-                self._console_queue.put(f'[ERROR] Exception: {e}')
-            finally:
-                self.after(0, self._enable_buttons)
-
-        Thread(target=task, daemon=True).start()
+        :return: None
+        """
+        self._run_serial_task(
+            info_text="Getting MicroPython version",
+            command=lambda runner: runner.get_version(
+                port=self.__device_path,
+                callback=lambda output: self._handle_serial_output(output)
+            )
+        )
 
     def _get_structure(self) -> None:
         """
-        Gets the file and folder structure of the device.
+        Triggers a task to get the file structure and process its output.
 
         :return: None
         """
-        debug('Get device structure')
-        self._delete_console()
-
-        if not self.__device_path:
-            error('No device selected!')
-            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
-            return
-
-        self._disable_buttons()
-        self._console_text.insert("end", f'[INFO] Getting device structure...\n', "info")
-
-        def task():
-            try:
-                with MicroPythonFileStructure(port=self.__device_path) as mpt:
-                    structure = mpt.get_tree()
-
-                if structure and structure != "[ERROR] Timeout":
-                    self._console_queue.put(f'root\n{structure}')
-                else:
-                    self._console_queue.put('[ERROR] Could not get device structure')
-            except Exception as e:
-                self._console_queue.put(f'[ERROR] Exception: {e}')
-            finally:
-                self.after(0, self._enable_buttons)
-
-        Thread(target=task, daemon=True).start()
+        self._run_serial_task(
+            info_text="Getting device structure",
+            command=lambda runner: runner.get_structure(
+                port=self.__device_path,
+                callback=lambda output: self._handle_serial_output(output, "structure")
+            )
+        )
 
     def _handle_esptool_output(self, text: str) -> None:
         """
@@ -600,7 +599,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type command_name: str
         :return: None
         """
-        debug(f'Prepare esptool command for: {command_name}')
+        info(f'Prepare esptool command for: {command_name}')
         self._delete_console()
 
         allowed_commands = {"chip_id", "flash_id", "read_mac", "read_flash_status", "erase_flash"}
@@ -631,7 +630,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        debug('Prepare esptool command for: firmware flash')
+        info('Prepare esptool command for: firmware flash')
         self._delete_console()
 
         errors = []
