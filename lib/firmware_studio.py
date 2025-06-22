@@ -66,11 +66,13 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._device_path_label.configure(font=FONT_PATH)
 
         reload_img = CTkImage(light_image=Image.open(RELOAD_ICON))
-        self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30, command=self._search_devices)
+        self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30)
         self._refresh.pack(side="right", padx=10, pady=10)
+        self._refresh.configure(command=self._search_devices)
 
-        self._device_option = CTkOptionMenu(self._top_frame, width=150, command=self._set_device)
+        self._device_option = CTkOptionMenu(self._top_frame, width=150)
         self._device_option.pack(side="right", padx=10, pady=10)
+        self._device_option.configure(command=self._set_device)
 
         # Left Top Frame
         self._left_label = CTkLabel(self._left_top_frame, text='Information')
@@ -94,14 +96,14 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_status_btn.configure(command=lambda: self._run_esptool_command("read_flash_status"))
         self._flash_status_btn.pack_forget()
 
-        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', command=self._get_version)
+        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', fg_color='green')
         self._mp_version_btn.pack(padx=10, pady=5)
-        self._mp_version_btn.configure(fg_color='green')
+        self._mp_version_btn.configure(command=self._get_version)
         self._mp_version_btn.pack_forget()
 
-        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', command=self._get_structure)
+        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', fg_color='green')
         self._mp_structure_btn.pack(padx=10, pady=5)
-        self._mp_structure_btn.configure(fg_color='green')
+        self._mp_structure_btn.configure(command=self._get_structure)
         self._mp_structure_btn.pack_forget()
 
         # Left Bottom Frame
@@ -118,8 +120,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._right_label.grid(row=0, column=0, columnspan=5, padx=10, pady=10, sticky="w")
         self._right_label.configure(font=FONT_CATEGORY)
 
-        self._expert_mode = CTkSwitch(self._right_frame, text='Expert Mode', command=self.toggle_expert_mode)
+        self._expert_mode = CTkSwitch(self._right_frame, text='Expert Mode')
         self._expert_mode.grid(row=0, column=5, padx=10, pady=5, sticky="e")
+        self._expert_mode.configure(command=self.toggle_expert_mode)
 
         # Right Frame (chip select)
         self._chip_label = CTkLabel(self._right_frame, text='Step 1:')
@@ -247,8 +250,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._separator_canvas.grid(row=9, columnspan=6, sticky="ew", padx=10, pady=10)
 
         # Right Frame (start firmware flash)
-        self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware', command=self._flash_firmware)
+        self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware')
         self._flash_btn.grid(row=10, column=1, columnspan=5, padx=10, pady=5, sticky="w")
+        self._flash_btn.configure(command=self._flash_firmware)
 
         # Bottom Frame
         self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
