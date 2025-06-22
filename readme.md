@@ -12,7 +12,7 @@
 
 - Clean and intuitive GUI
 - Supporting device detection
-- Firmware download support
+- MicroPython firmware download support
 - Simple and expert mode can be set at any time
 - Compatible with many ESP microcontrollers
 - Configurable features, appearance and device and OS support
