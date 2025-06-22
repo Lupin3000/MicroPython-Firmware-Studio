@@ -1,4 +1,10 @@
+BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
+FLASH_MODE_OPTIONS: list = ["keep", "qio", "qout", "dio", "dout"]
+FLASH_FREQUENCY_OPTIONS: list = ["keep", "40m", "26m", "20m", "80m"]
+FLASH_SIZE_OPTIONS: list = ["keep", "detect", "1MB", "2MB", "4MB", "8MB", "16MB"]
+
 DEFAULT_URL: str = "https://micropython.org/download/"
+
 CONFIGURED_DEVICES: dict = {
     "ESP8266": {
         "name": "esp8266",

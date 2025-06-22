@@ -13,7 +13,8 @@ from lib.base_ui import BaseUI
 from lib.esptool_runner import CommandRunner
 from lib.serial_get_micropython_version import MicroPythonVersion
 from lib.serial_get_file_structure import MicroPythonFileStructure
-from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
+from config.device_configuration import (BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS, FLASH_FREQUENCY_OPTIONS,
+                                         FLASH_SIZE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES)
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
                                               CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
 
@@ -23,21 +24,8 @@ logger = getLogger(__name__)
 
 class MicroPythonFirmwareStudio(BaseUI):
     """
-    A class representing the MicroPython Firmware Studio GUI.
-
-    :ivar _BAUDRATE_OPTIONS: The list of available baud rate options.
-    :type _BAUDRATE_OPTIONS: list
-    :ivar _FLASH_MODE_OPTIONS: The list of available flash mode options.
-    :type _FLASH_MODE_OPTIONS: list
-    :ivar _FLASH_FREQUENCY_OPTIONS: The list of available flash frequency options.
-    :type _FLASH_FREQUENCY_OPTIONS: list
-    :ivar _FLASH_SIZE_OPTIONS: The list of available flash size options.
-    :type _FLASH_SIZE_OPTIONS: list
+    A class representing the MicroPython Firmware Studio GUI via CTkinter.
     """
-    _BAUDRATE_OPTIONS: list = ["9600", "57600", "74880", "115200", "23400", "460800", "921600", "1500000"]
-    _FLASH_MODE_OPTIONS: list = ["keep", "qio", "qout", "dio", "dout"]
-    _FLASH_FREQUENCY_OPTIONS: list = ["keep", "40m", "26m", "20m", "80m"]
-    _FLASH_SIZE_OPTIONS: list = ["keep", "detect", "1MB", "2MB", "4MB", "8MB", "16MB"]
 
     def __init__(self):
         """
@@ -165,7 +153,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._baudrate_label = CTkLabel(self._right_frame, text='Step 3:')
         self._baudrate_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-        self._baudrate_option = CTkOptionMenu(self._right_frame, values=self._BAUDRATE_OPTIONS, width=150)
+        self._baudrate_option = CTkOptionMenu(self._right_frame, values=BAUDRATE_OPTIONS, width=150)
         self._baudrate_option.grid(row=3, column=1, padx=10, pady=5, sticky="w")
         self._baudrate_option.set(str(self.__selected_baudrate))
         self._baudrate_option.configure(command=self._set_baudrate)
@@ -198,7 +186,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
         self._flash_mode_label.grid_remove()
 
-        self._flash_mode_option = CTkOptionMenu(self._right_frame, values=self._FLASH_MODE_OPTIONS, width=150)
+        self._flash_mode_option = CTkOptionMenu(self._right_frame, values=FLASH_MODE_OPTIONS, width=150)
         self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
         self._flash_mode_option.set("keep")
         self._flash_mode_option.grid_remove()
@@ -211,7 +199,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
         self._flash_frequency_label.grid_remove()
 
-        self._flash_frequency_option = CTkOptionMenu(self._right_frame, values=self._FLASH_FREQUENCY_OPTIONS, width=150)
+        self._flash_frequency_option = CTkOptionMenu(self._right_frame, values=FLASH_FREQUENCY_OPTIONS, width=150)
         self._flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
         self._flash_frequency_option.set("keep")
         self._flash_frequency_option.grid_remove()
@@ -224,7 +212,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
         self._flash_size_label.grid_remove()
 
-        self._flash_size_option = CTkOptionMenu(self._right_frame, values=self._FLASH_SIZE_OPTIONS, width=150)
+        self._flash_size_option = CTkOptionMenu(self._right_frame, values=FLASH_SIZE_OPTIONS, width=150)
         self._flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
         self._flash_size_option.set("detect")
         self._flash_size_option.grid_remove()
@@ -464,7 +452,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         debug(f'Selected baudrate: {selection}')
 
-        if selection and selection in self._BAUDRATE_OPTIONS:
+        if selection and selection in BAUDRATE_OPTIONS:
             self.__selected_baudrate = int(selection)
             self._baudrate_checkbox.select()
         else:
