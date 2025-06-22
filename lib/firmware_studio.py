@@ -2,15 +2,15 @@ from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
 from os.path import expanduser
-from subprocess import Popen, PIPE
 from tkinter import filedialog, Canvas, Event
 from webbrowser import open_new
-from typing import Optional, List
+from typing import Optional
 from PIL import Image
 from threading import Thread
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
 from lib.base_ui import BaseUI
+from lib.esptool_runner import CommandRunner
 from lib.serial_get_micropython_version import MicroPythonVersion
 from lib.serial_get_file_structure import MicroPythonFileStructure
 from config.device_configuration import DEFAULT_URL, CONFIGURED_DEVICES
@@ -54,6 +54,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.__url: str = DEFAULT_URL
         self.__expert_mode: bool = False
 
+        self.esptool_runner = CommandRunner(
+            on_output=self._handle_output,
+            on_error=self._handle_error,
+            on_complete=self._handle_complete
+        )
+
         # Top Frame
         self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
         self._device_path_label.pack(side="left", padx=10, pady=10)
@@ -71,17 +77,21 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._left_label.pack(padx=10, pady=10)
         self._left_label.configure(font=FONT_CATEGORY)
 
-        self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID', command=self._get_chip_id)
+        self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID')
         self._chip_info_btn.pack(padx=10, pady=5)
+        self._chip_info_btn.configure(command=lambda: self._run_esptool_command("chip_id"))
 
-        self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID', command=self._get_flash_id)
+        self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID')
         self._memory_info_btn.pack(padx=10, pady=5)
+        self._memory_info_btn.configure(command=lambda: self._run_esptool_command("flash_id"))
 
-        self._mac_info_btn = CTkButton(self._left_top_frame, text='MAC Address', command=self._get_mac)
+        self._mac_info_btn = CTkButton(self._left_top_frame, text='MAC Address')
         self._mac_info_btn.pack(padx=10, pady=5)
+        self._mac_info_btn.configure(command=lambda: self._run_esptool_command("read_mac"))
 
-        self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status', command=self._get_flash_status)
+        self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status')
         self._flash_status_btn.pack(padx=10, pady=5)
+        self._flash_status_btn.configure(command=lambda: self._run_esptool_command("read_flash_status"))
         self._flash_status_btn.pack_forget()
 
         self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', command=self._get_version)
@@ -99,8 +109,9 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._left_bottom_label.pack(padx=10, pady=10)
         self._left_bottom_label.configure(font=FONT_CATEGORY)
 
-        self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash', command=self._erase_flash)
+        self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash')
         self._erase_btn.pack(padx=10, pady=5)
+        self._erase_btn.configure(command=lambda: self._run_esptool_command("erase_flash"))
 
         # Right Frame
         self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
@@ -494,96 +505,33 @@ class MicroPythonFirmwareStudio(BaseUI):
         self._erase_btn.configure(state='normal')
         self._flash_btn.configure(state='normal')
 
-    def _on_thread_complete(self) -> None:
+    def _handle_output(self, text: str) -> None:
         """
-        Handle the completion of a thread, perform the necessary cleanup and post-processing.
+        Handles the output by scheduling a task for posting the text to the console queue.
+
+        :param text: The text to be posted to the console queue.
+        :type text: str
+        :return: None
+        """
+        self.after(0, lambda: self._console_queue.put(text))
+
+    def _handle_error(self, text: str) -> None:
+        """
+        Handles errors by updating the console text widget with the provided error message.
+
+        :param text: The error message to be displayed in the console.
+        :type text: str
+        :return: None
+        """
+        self.after(0, lambda: self._console_text.insert("end", f'[ERROR] {text}\n', "error"))
+
+    def _handle_complete(self) -> None:
+        """
+        Handles the completion of a specific task by enabling buttons.
 
         :return: None
         """
-        self._enable_buttons()
-
-    def _run_threaded_command(self, command: List[str]) -> None:
-        """
-        Executes a given command on a separate thread to avoid blocking the
-        main execution flow. The method ensures that UI buttons are
-        disabled while the command is being executed in the background.
-
-        :param command: A list of strings representing the command and its arguments to be executed.
-        :type command: List[str]
-        :return: None
-        """
-        self._disable_buttons()
-
-        thread = Thread(target=self._execute_command, args=(command,))
-        thread.start()
-
-    def _execute_command(self, command: List[str]) -> None:
-        """
-        Executes a command as a subprocess and processes its output line by line. The method
-        also filters specific lines of output related to flash identification and handles
-        command completion by calling a callback function.
-
-        :param command: A list of strings representing the command and its arguments to be executed.
-        :type command: List[str]
-        :return: None
-        """
-        is_flash_id = "flash_id" in command
-        process = Popen(command, stdout=PIPE, stderr=PIPE, text=True)
-
-        while True:
-            line = process.stdout.readline()
-            if not line:
-                break
-
-            line = line.strip()
-            if is_flash_id and (
-                    "Chip is" in line or
-                    "Detected flash size" in line or
-                    "Detecting chip type" in line
-            ):
-                info(line)
-
-            self._console_queue.put(line)
-
-        process.wait()
-
-        if process.returncode != 0:
-            error_output = process.stderr.read().strip()
-            self._console_queue.put(f'[ERROR]: {error_output}')
-
-        self.after(0, self._on_thread_complete)
-
-    def _get_chip_id(self) -> None:
-        """
-        Retrieves the chip id identification for the connected device.
-
-        :return: None
-        """
-        self._run_esptool_command("chip_id")
-
-    def _get_flash_id(self) -> None:
-        """
-        Retrieves the flash memory identification for the connected device.
-
-        :return: None
-        """
-        self._run_esptool_command("flash_id")
-
-    def _get_mac(self) -> None:
-        """
-        Retrieves the mac address information for the connected device.
-
-        :return: None
-        """
-        self._run_esptool_command("read_mac")
-
-    def _get_flash_status(self) -> None:
-        """
-        Retrieves the flash memory status information for the connected device.
-
-        :return: None
-        """
-        self._run_esptool_command("read_flash_status")
+        self.after(0, lambda: self._enable_buttons())
 
     def _get_version(self) -> None:
         """
@@ -652,14 +600,6 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         Thread(target=task, daemon=True).start()
 
-    def _erase_flash(self) -> None:
-        """
-        Erases the flash memory of the connected device.
-
-        :return: None
-        """
-        self._run_esptool_command("erase_flash")
-
     def _run_esptool_command(self, command_name: str) -> None:
         """
         Executes an esptool command using the specified `command_name`.
@@ -668,7 +608,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type command_name: str
         :return: None
         """
-        debug(f'Running esptool command: {command_name}')
+        debug(f'Prepare esptool command for: {command_name}')
         self._delete_console()
 
         allowed_commands = {"chip_id", "flash_id", "read_mac", "read_flash_status", "erase_flash"}
@@ -689,8 +629,9 @@ class MicroPythonFirmwareStudio(BaseUI):
                self.__device_path,
                command_name]
 
+        self._disable_buttons()
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
-        self._run_threaded_command(command=cmd)
+        self.esptool_runner.run_threaded_command(command=cmd)
 
     def _flash_firmware(self) -> None:
         """
@@ -698,6 +639,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
+        debug('Prepare esptool command for: firmware flash')
         self._delete_console()
 
         errors = []
@@ -741,6 +683,6 @@ class MicroPythonFirmwareStudio(BaseUI):
             index = cmd.index('write_flash') + 1
             cmd = cmd[:index] + expert_args + cmd[index:]
 
-        debug(f'Running esptool command: {cmd}')
+        self._disable_buttons()
         self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
-        self._run_threaded_command(command=cmd)
+        self.esptool_runner.run_threaded_command(command=cmd)
