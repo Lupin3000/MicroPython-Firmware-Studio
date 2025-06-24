@@ -9,6 +9,11 @@ logger = getLogger(__name__)
 
 
 class SerialCommandRunner:
+    """
+    A class for managing serial command executions and acquiring information from
+    serial ports, such as version and file structure data.
+    """
+
 
     @staticmethod
     def _run_in_thread(worker: Callable[[], str], callback: Callable[[str], None]) -> None:
