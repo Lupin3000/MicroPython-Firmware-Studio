@@ -7,10 +7,10 @@ from webbrowser import open_new
 from typing import Optional, Callable
 from queue import Queue, Empty
 from ui.base_ui import BaseUI
-from ui.frame_search_device import FrameSearchDevice
 from ui.frame_device_information import FrameDeviceInformation
 from ui.frame_erase_device import FrameEraseDevice
 from ui.frame_firmware_flash import FrameFirmwareFlash
+from ui.frame_search_device import FrameSearchDevice
 from ui.frame_console import FrameConsole
 from esptool_plugin.esptool_command_runner import CommandRunner
 from serial_plugin.serial_command_runner import SerialCommandRunner
