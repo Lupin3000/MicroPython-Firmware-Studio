@@ -1,8 +1,12 @@
+from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkSwitch, CTkOptionMenu, CTkCheckBox, CTkButton, CTkEntry
 from tkinter import Canvas
 from config.application_configuration import LINK_OBJECT
 from config.device_configuration import (CONFIGURED_DEVICES, BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS,
                                          FLASH_FREQUENCY_OPTIONS, FLASH_SIZE_OPTIONS)
+
+
+logger = getLogger(__name__)
 
 
 class FrameFirmwareFlash(CTkFrame):
@@ -18,6 +22,7 @@ class FrameFirmwareFlash(CTkFrame):
         customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
+        debug('Create FirmwareFlash Frame')
 
         self.grid(row=1, column=1, rowspan=2, padx=10, pady=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=0)

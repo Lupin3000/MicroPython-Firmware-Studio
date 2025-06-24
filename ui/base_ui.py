@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 class BaseUI(CTk):
     """
     BaseUI is responsible for the overall layout and initialization of the graphical
-    user interface (GUI). It manages the creation and configuration OS detection,
+    user interface (GUI). It manages the creation and configuration of OS detection,
     Default Window settings and grid layout.
     """
 
@@ -26,6 +26,7 @@ class BaseUI(CTk):
         """
         super().__init__()
 
+        debug('Checking operating system compatibility')
         self._current_platform = system()
         if self._current_platform not in OPERATING_SYSTEM:
             error(f'Unsupported operating system: {self._current_platform}')
@@ -35,6 +36,7 @@ class BaseUI(CTk):
             self._device_search_path = OPERATING_SYSTEM[self._current_platform]['device_path']
             self._firmware_search_path = OPERATING_SYSTEM[self._current_platform]['search_path']
 
+        debug('Setting default window and Grid settings')
         self.title(TITLE)
         self.resizable(False, False)
 
@@ -55,9 +57,11 @@ class BaseUI(CTk):
         is_copy = (event.state & 0x000C) and event.keysym.lower() == 'c'
         is_select_all = (event.state & 0x000C) and event.keysym.lower() == 'a'
 
+        debug('Allow text select and copy')
         if is_copy or is_select_all:
             return ""
 
+        debug('Block text input')
         return "break"
 
     def destroy(self) -> None:

@@ -1,6 +1,10 @@
+from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkImage, CTkButton, CTkOptionMenu
 from PIL import Image
 from config.application_configuration import RELOAD_ICON
+
+
+logger = getLogger(__name__)
 
 
 class FrameSearchDevice(CTkFrame):
@@ -15,6 +19,7 @@ class FrameSearchDevice(CTkFrame):
         Image, Button and an OptionMenu with customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
+        debug('Create SearchDevice Frame')
 
         self.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 

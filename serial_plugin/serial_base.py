@@ -41,7 +41,7 @@ class SerialBase:
             sleep(self._timeout)
             return True
         except Exception as err:
-            error(f"[ERROR] connection missed: {err}")
+            error(f"Connection to device missed: {err}")
             return False
 
     def _disconnect(self) -> None:
@@ -72,7 +72,7 @@ class SerialBase:
         sleep(wait)
 
         output = self._ser.read_all().decode(errors='ignore')
-        debug(f"[DEBUG] command output: {output}")
+        debug(f"REPL returned output: {output}")
 
         return output.strip()
 

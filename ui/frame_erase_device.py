@@ -1,4 +1,8 @@
+from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkButton
+
+
+logger = getLogger(__name__)
 
 
 class FrameEraseDevice(CTkFrame):
@@ -13,6 +17,7 @@ class FrameEraseDevice(CTkFrame):
         Label and a Button with customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
+        debug('Create EraseDevice Frame')
 
         self.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
         self.grid_columnconfigure(0, weight=1)

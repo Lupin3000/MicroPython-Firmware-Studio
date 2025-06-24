@@ -28,8 +28,6 @@ class MicroPythonFirmwareStudio(BaseUI):
 
     Provides an interface to connect, configure, and flash firmware for ESP devices.
     Includes options to toggle expert mode and interact with device-specific details.
-
-    The class integrates multiple frames, to guide users through ESP device communication.
     """
 
     def __init__(self):
@@ -53,6 +51,7 @@ class MicroPythonFirmwareStudio(BaseUI):
             on_complete=self._handle_esptool_complete
         )
 
+        debug('Adding frames to UI and configuring elements')
         # Search Device
         self.search_device = FrameSearchDevice(self)
         self.search_device.label.configure(font=FONT_PATH)
@@ -119,9 +118,11 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.console.console_text.tag_config("error", foreground=CONSOLE_ERROR)
         self.console.console_text.bind("<Key>", BaseUI._block_text_input)
 
+        debug('Searching for USB devices')
         # search for devices on the start
         self._search_devices()
 
+        debug('Starting console queue poll')
         # poll the console queue for new lines
         self._poll_console_queue()
 

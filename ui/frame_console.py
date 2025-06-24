@@ -1,4 +1,8 @@
+from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkTextbox
+
+
+logger = getLogger(__name__)
 
 
 class FrameConsole(CTkFrame):
@@ -13,6 +17,7 @@ class FrameConsole(CTkFrame):
         Label and a Textbox with customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
+        debug('Create Console Frame')
 
         self.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.grid_columnconfigure(0, weight=1)
