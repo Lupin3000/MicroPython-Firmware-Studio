@@ -53,20 +53,7 @@ class SerialBase:
         if self._ser and self._ser.is_open:
             self._ser.close()
 
-    def wake_repl(self) -> None:
-        """
-        Invokes a wake-up sequence for the REPL (Read-Eval-Print Loop) interface by
-        interacting with the serial connection.
-
-        :return: None
-        """
-        self._ser.reset_input_buffer()
-        self._ser.write(b'\r\n')
-        sleep(0.2)
-
-        self._ser.read_all()
-
-    def send_command(self, command: str, wait: float = 0.3) -> str:
+    def send_repl_command(self, command: str, wait: float = 0.3) -> str:
         """
         Sends a command to the REPL interface and retrieves its output.
 

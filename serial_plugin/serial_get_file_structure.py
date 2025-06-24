@@ -45,6 +45,7 @@ class FileStructure(SerialBase):
         """
         self.enter_raw_repl()
         self._ser.write(self._TREE_CODE.encode('utf-8') + b'\x04')
+
         output = b''
         start = time()
 
@@ -61,6 +62,7 @@ class FileStructure(SerialBase):
                 break
 
         self.exit_raw_repl()
+
         out = output.decode(errors="ignore")
         debug(f"[DEBUG] tree output: {out}")
 

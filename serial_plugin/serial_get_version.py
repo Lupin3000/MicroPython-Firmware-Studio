@@ -37,7 +37,7 @@ class Version(SerialBase):
         :return: The extracted Python version as a string.
         :rtype: str
         """
-        output = self.send_command("import sys; print(sys.version)")
+        output = self.send_repl_command("import sys; print(sys.version)")
         debug(f"[DEBUG] version output: {output}")
 
         return self._extract_version(output)
