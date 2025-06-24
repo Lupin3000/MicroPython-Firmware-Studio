@@ -8,10 +8,11 @@ logger = getLogger(__name__)
 
 class FileStructure(SerialBase):
     """
-    Represents a utility for interacting with a MicroPython device to fetch and manage
-    a tree structure of the file system over a serial connection.
+    Represents a utility for interacting with a device to fetch and manage
+    the file structure of MicroPython firmware flashed device over a
+    serial connection.
 
-    :ivar _TREE_CODE: The Python code to generate the tree structure.
+    :ivar _TREE_CODE: The MicroPython REPL code to generate the tree structure.
     """
     _TREE_CODE = (
         "import os\n"

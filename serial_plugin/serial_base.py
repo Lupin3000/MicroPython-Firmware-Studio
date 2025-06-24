@@ -11,14 +11,14 @@ logger = getLogger(__name__)
 
 class SerialBase:
     """
-    Manages a MicroPython serial connection and REPL modes.
+    Manages a MicroPython serial connection and offers REPL communication modes.
     """
 
     def __init__(self, port: str, baudrate: int = SERIAL_RATE, timeout: int = 2):
         """
-        Initializes a serial connection with the provided port settings.
+        Initializes a serial connection with the provided usb device port settings.
 
-        :param port: The serial port to connect to.
+        :param port: The serial device port to connect to.
         :type port: str
         :param baudrate: The baud rate for the connection, which determines data transmission speed.
         :type baudrate: int, optional

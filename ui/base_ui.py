@@ -12,7 +12,8 @@ logger = getLogger(__name__)
 class BaseUI(CTk):
     """
     BaseUI is responsible for the overall layout and initialization of the graphical
-    user interface (GUI). It manages the creation of UI frames.
+    user interface (GUI). It manages the creation and configuration OS detection,
+    Default Window settings and grid layout.
     """
 
     def __init__(self):

@@ -7,8 +7,9 @@ logger = getLogger(__name__)
 
 class Version(SerialBase):
     """
-    Represents a utility for interacting with a MicroPython device to fetch the
-    current Micropython version information over a serial connection.
+    Represents a utility for interacting with a device to  fetch the
+    current Micropython version of MicroPython firmware flashed device
+    over a serial connection.
     """
 
     @staticmethod

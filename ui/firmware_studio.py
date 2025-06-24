@@ -24,7 +24,12 @@ logger = getLogger(__name__)
 
 class MicroPythonFirmwareStudio(BaseUI):
     """
-    A class representing the MicroPython Firmware Studio GUI via CTkinter.
+    A GUI class to manage ESP device configuration and firmware flashing.
+
+    Provides an interface to connect, configure, and flash firmware for ESP devices.
+    Includes options to toggle expert mode and interact with device-specific details.
+
+    The class integrates multiple frames, to guide users through ESP device communication.
     """
 
     def __init__(self):
