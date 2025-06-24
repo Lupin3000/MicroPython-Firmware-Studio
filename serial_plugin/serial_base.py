@@ -1,6 +1,6 @@
+from logging import getLogger, error, debug
 from serial import Serial
 from time import sleep
-from logging import getLogger, error
 from types import TracebackType
 from typing import Optional, Type
 from config.application_configuration import SERIAL_RATE
@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 class SerialBase:
     """
-    Manages a MicroPython serial connection.
+    Manages a MicroPython serial connection and REPL modes.
     """
 
     def __init__(self, port: str, baudrate: int = SERIAL_RATE, timeout: int = 2):
@@ -52,6 +52,65 @@ class SerialBase:
         """
         if self._ser and self._ser.is_open:
             self._ser.close()
+
+    def wake_repl(self) -> None:
+        """
+        Invokes a wake-up sequence for the REPL (Read-Eval-Print Loop) interface by
+        interacting with the serial connection.
+
+        :return: None
+        """
+        self._ser.reset_input_buffer()
+        self._ser.write(b'\r\n')
+        sleep(0.2)
+
+        self._ser.read_all()
+
+    def send_command(self, command: str, wait: float = 0.3) -> str:
+        """
+        Sends a command to the REPL interface and retrieves its output.
+
+        :param command: The command to be sent to the REPL interface.
+        :type command: str
+        :param wait: The amount of time, in seconds.
+        :type wait: float, optional
+        :return: The output received from the REPL
+        :rtype: str
+        :raises RuntimeError: If the REPL interface is not connected or available.
+        """
+        if not self._ser or not self._ser.is_open:
+            raise RuntimeError("REPL not connected")
+
+        self._ser.write(command.encode() + b'\r\n')
+        sleep(wait)
+
+        output = self._ser.read_all().decode(errors='ignore')
+        debug(f"[DEBUG] command output: {output}")
+
+        return output.strip()
+
+    def enter_raw_repl(self) -> None:
+        """
+        Enter raw REPL mode on the connected device.
+
+        :return: None
+        """
+        self._ser.write(b'\r\x03\x03')
+        sleep(0.1)
+
+        self._ser.write(b'\r\x01')
+        sleep(0.1)
+
+        self._ser.reset_input_buffer()
+
+    def exit_raw_repl(self) -> None:
+        """
+        Exits raw REPL mode on the connected device.
+
+        :return: None
+        """
+        self._ser.write(b'\r\x02')
+        sleep(0.1)
 
     def __enter__(self) -> "SerialBase":
         """

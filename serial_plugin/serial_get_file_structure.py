@@ -1,5 +1,5 @@
 from logging import getLogger, debug
-from time import time, sleep
+from time import time
 from serial_plugin.serial_base import SerialBase
 
 
@@ -33,29 +33,6 @@ class FileStructure(SerialBase):
         "tree('')\n"
     )
 
-    def _enter_raw_repl(self) -> None:
-        """
-        Enter raw REPL mode on the connected device.
-
-        :return: None
-        """
-        self._ser.write(b'\r\x03\x03')
-        sleep(0.1)
-
-        self._ser.write(b'\r\x01')
-        sleep(0.1)
-
-        self._ser.reset_input_buffer()
-
-    def _exit_raw_repl(self) -> None:
-        """
-        Exits raw REPL mode on the connected device.
-
-        :return: None
-        """
-        self._ser.write(b'\r\x02')
-        sleep(0.1)
-
     def get_tree(self) -> str:
         """
         Retrieves the current state of the tree structure by communicating with
@@ -66,7 +43,7 @@ class FileStructure(SerialBase):
         :return: The tree structure information.
         :rtype: str
         """
-        self._enter_raw_repl()
+        self.enter_raw_repl()
         self._ser.write(self._TREE_CODE.encode('utf-8') + b'\x04')
         output = b''
         start = time()
@@ -83,7 +60,7 @@ class FileStructure(SerialBase):
             if output.endswith(b'\x04>'):
                 break
 
-        self._exit_raw_repl()
+        self.exit_raw_repl()
         out = output.decode(errors="ignore")
         debug(f"[DEBUG] tree output: {out}")
 
