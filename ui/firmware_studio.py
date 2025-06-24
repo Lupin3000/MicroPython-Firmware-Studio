@@ -72,6 +72,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         # PlugIns
         self.plugins = FramePlugIns(self)
         self.plugins.label.configure(font=FONT_CATEGORY)
+        self.plugins.mp_debug_btn.configure(command=self._debug_device)
         self.plugins.mp_version_btn.configure(command=self._get_version)
         self.plugins.mp_version_btn.pack_forget()
         self.plugins.mp_structure_btn.configure(command=self._get_structure)
@@ -229,6 +230,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.memory_info_btn.configure(state='disabled')
         self.information.mac_info_btn.configure(state='disabled')
         self.information.flash_status_btn.configure(state='disabled')
+        self.plugins.mp_debug_btn.configure(state='disabled')
         self.plugins.mp_version_btn.configure(state='disabled')
         self.plugins.mp_structure_btn.configure(state='disabled')
         self.erase_device.erase_btn.configure(state='disabled')
@@ -244,6 +246,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.memory_info_btn.configure(state='normal')
         self.information.mac_info_btn.configure(state='normal')
         self.information.flash_status_btn.configure(state='normal')
+        self.plugins.mp_debug_btn.configure(state='normal')
         self.plugins.mp_version_btn.configure(state='normal')
         self.plugins.mp_structure_btn.configure(state='normal')
         self.erase_device.erase_btn.configure(state='normal')
@@ -412,6 +415,9 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         runner = SerialCommandRunner()
         command(runner)
+
+    def _debug_device(self) -> None:
+        pass
 
     def _get_version(self) -> None:
         """
