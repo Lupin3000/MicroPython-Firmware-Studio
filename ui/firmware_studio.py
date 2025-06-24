@@ -15,8 +15,8 @@ from ui.frame_console import FrameConsole
 from esptool_plugin.esptool_command_runner import CommandRunner
 from serial_plugin.serial_command_runner import SerialCommandRunner
 from config.device_configuration import BAUDRATE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES
-from config.application_configuration import (FONT_CATEGORY, FONT_DESCRIPTION, CONSOLE_INFO, CONSOLE_COMMAND,
-                                              CONSOLE_ERROR)
+from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, CONSOLE_INFO,
+                                              CONSOLE_COMMAND, CONSOLE_ERROR)
 
 
 logger = getLogger(__name__)
@@ -50,7 +50,8 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         # Search Device
         self.search_device = FrameSearchDevice(self)
-        self.search_device.refresh.configure(command=self._search_devices)
+        self.search_device.label.configure(font=FONT_PATH)
+        self.search_device.reload_btn.configure(command=self._search_devices)
         self.search_device.device_option.configure(command=self._set_device)
 
         # Device Information
@@ -274,10 +275,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         if selected_device and selected_device not in ("Select Device", "No devices found"):
             info(f'Selected device: {selected_device}')
             self.__device_path = selected_device
-            self.search_device.device_path_label.configure(text=f'Device Path: {self.__device_path}')
+            self.search_device.label.configure(text=f'Device Path: {self.__device_path}')
         else:
             self.__device_path = None
-            self.search_device.device_path_label.configure(text='Device Path:')
+            self.search_device.label.configure(text='Device Path:')
 
     def _set_chip(self, selection: str) -> None:
         """
