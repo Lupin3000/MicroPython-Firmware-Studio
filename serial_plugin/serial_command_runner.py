@@ -1,8 +1,8 @@
 from logging import getLogger, debug
 from threading import Thread
 from typing import Callable
-from serial_plugin.serial_get_version import Version
-from serial_plugin.serial_get_file_structure import FileStructure
+from .serial_get_version import Version
+from .serial_get_file_structure import FileStructure
 
 
 logger = getLogger(__name__)

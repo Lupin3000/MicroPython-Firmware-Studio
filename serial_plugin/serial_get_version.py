@@ -1,5 +1,5 @@
 from logging import getLogger, debug
-from serial_plugin.serial_base import SerialBase
+from .serial_base import SerialBase
 
 
 logger = getLogger(__name__)
