@@ -19,7 +19,7 @@ class FrameSearchDevice(CTkFrame):
         Image, Button and an OptionMenu with customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
-        debug('Create SearchDevice Frame')
+        debug('Create Search Device Frame')
 
         self.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 

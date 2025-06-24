@@ -22,9 +22,9 @@ class FrameFirmwareFlash(CTkFrame):
         customizable UI features.
         """
         super().__init__(master, *args, **kwargs)
-        debug('Create FirmwareFlash Frame')
+        debug('Create Firmware Flash Frame')
 
-        self.grid(row=1, column=1, rowspan=2, padx=10, pady=5, sticky="nsew")
+        self.grid(row=1, column=1, rowspan=3, padx=10, pady=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=0)
         self.grid_columnconfigure(5, weight=1)
 

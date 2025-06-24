@@ -12,6 +12,7 @@ from ui.frame_erase_device import FrameEraseDevice
 from ui.frame_firmware_flash import FrameFirmwareFlash
 from ui.frame_search_device import FrameSearchDevice
 from ui.frame_console import FrameConsole
+from ui.frame_plugins import FramePlugIns
 from esptool_plugin.esptool_command_runner import CommandRunner
 from serial_plugin.serial_command_runner import SerialCommandRunner
 from config.device_configuration import BAUDRATE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES
@@ -64,12 +65,17 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.chip_info_btn.configure(command=lambda: self._esptool_command("chip_id"))
         self.information.memory_info_btn.configure(command=lambda: self._esptool_command("flash_id"))
         self.information.mac_info_btn.configure(command=lambda: self._esptool_command("read_mac"))
+        self.information.mac_info_btn.pack_forget()
         self.information.flash_status_btn.configure(command=lambda: self._esptool_command("read_flash_status"))
         self.information.flash_status_btn.pack_forget()
-        self.information.mp_version_btn.configure(command=self._get_version)
-        self.information.mp_version_btn.pack_forget()
-        self.information.mp_structure_btn.configure(command=self._get_structure)
-        self.information.mp_structure_btn.pack_forget()
+
+        # PlugIns
+        self.plugins = FramePlugIns(self)
+        self.plugins.label.configure(font=FONT_CATEGORY)
+        self.plugins.mp_version_btn.configure(command=self._get_version)
+        self.plugins.mp_version_btn.pack_forget()
+        self.plugins.mp_structure_btn.configure(command=self._get_structure)
+        self.plugins.mp_structure_btn.pack_forget()
 
         # Erase Device
         self.erase_device = FrameEraseDevice(self)
@@ -148,9 +154,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         if self.flash_firmware.expert_mode.get():
             debug('Expert mode enabled')
             self.__expert_mode = True
+            self.information.mac_info_btn.pack(padx=10, pady=5)
             self.information.flash_status_btn.pack(padx=10, pady=5)
-            self.information.mp_version_btn.pack(padx=10, pady=5)
-            self.information.mp_structure_btn.pack(padx=10, pady=5)
+            self.plugins.mp_version_btn.pack(padx=10, pady=5)
+            self.plugins.mp_structure_btn.pack(padx=10, pady=5)
             self.flash_firmware.flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
             self.flash_firmware.flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
             self.flash_firmware.flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -166,9 +173,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         else:
             debug('Expert mode disabled')
             self.__expert_mode = False
+            self.information.mac_info_btn.pack_forget()
             self.information.flash_status_btn.pack_forget()
-            self.information.mp_version_btn.pack_forget()
-            self.information.mp_structure_btn.pack_forget()
+            self.plugins.mp_version_btn.pack_forget()
+            self.plugins.mp_structure_btn.pack_forget()
             self.flash_firmware.flash_mode_label.grid_remove()
             self.flash_firmware.flash_mode_option.grid_remove()
             self.flash_firmware.flash_mode_info.grid_remove()
@@ -221,8 +229,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.memory_info_btn.configure(state='disabled')
         self.information.mac_info_btn.configure(state='disabled')
         self.information.flash_status_btn.configure(state='disabled')
-        self.information.mp_version_btn.configure(state='disabled')
-        self.information.mp_structure_btn.configure(state='disabled')
+        self.plugins.mp_version_btn.configure(state='disabled')
+        self.plugins.mp_structure_btn.configure(state='disabled')
         self.erase_device.erase_btn.configure(state='disabled')
         self.flash_firmware.flash_btn.configure(state='disabled')
 
@@ -236,8 +244,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.memory_info_btn.configure(state='normal')
         self.information.mac_info_btn.configure(state='normal')
         self.information.flash_status_btn.configure(state='normal')
-        self.information.mp_version_btn.configure(state='normal')
-        self.information.mp_structure_btn.configure(state='normal')
+        self.plugins.mp_version_btn.configure(state='normal')
+        self.plugins.mp_structure_btn.configure(state='normal')
         self.erase_device.erase_btn.configure(state='normal')
         self.flash_firmware.flash_btn.configure(state='normal')
 

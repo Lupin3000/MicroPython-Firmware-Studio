@@ -19,7 +19,7 @@ class FrameConsole(CTkFrame):
         super().__init__(master, *args, **kwargs)
         debug('Create Console Frame')
 
-        self.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+        self.grid(row=4, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.grid_columnconfigure(0, weight=1)
 
         self.label = CTkLabel(self, text='Console Output')
