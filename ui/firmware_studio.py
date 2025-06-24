@@ -8,9 +8,9 @@ from typing import Optional, Callable
 from PIL import Image
 from queue import Queue, Empty
 from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
-from lib.base_ui import BaseUI
-from lib.esptool_command_runner import CommandRunner
-from lib.serial_command_runner import SerialCommandRunner
+from ui.base_ui import BaseUI
+from esptool_plugin.esptool_command_runner import CommandRunner
+from serial_plugin.serial_command_runner import SerialCommandRunner
 from config.device_configuration import (BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS, FLASH_FREQUENCY_OPTIONS,
                                          FLASH_SIZE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES)
 from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,

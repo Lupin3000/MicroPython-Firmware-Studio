@@ -1,8 +1,8 @@
 from logging import getLogger, debug
 from threading import Thread
 from typing import Callable
-from lib.serial_get_micropython_version import MicroPythonVersion
-from lib.serial_get_file_structure import MicroPythonFileStructure
+from serial_plugin.serial_get_micropython_version import MicroPythonVersion
+from serial_plugin.serial_get_file_structure import MicroPythonFileStructure
 
 
 logger = getLogger(__name__)
