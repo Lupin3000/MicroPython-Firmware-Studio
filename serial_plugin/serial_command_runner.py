@@ -1,8 +1,8 @@
 from logging import getLogger, debug
 from threading import Thread
 from typing import Callable
-from serial_plugin.serial_get_micropython_version import MicroPythonVersion
-from serial_plugin.serial_get_file_structure import MicroPythonFileStructure
+from serial_plugin.serial_get_version import Version
+from serial_plugin.serial_get_file_structure import FileStructure
 
 
 logger = getLogger(__name__)
@@ -44,7 +44,7 @@ class SerialCommandRunner:
         :return: The version of MicroPython as a string.
         :rtype: str
         """
-        with MicroPythonVersion(port=port) as version_fetcher:
+        with Version(port=port) as version_fetcher:
             return version_fetcher.get_version()
 
     @staticmethod
@@ -57,7 +57,7 @@ class SerialCommandRunner:
         :return: The file structure as a string.
         :rtype: str
         """
-        with MicroPythonFileStructure(port=port) as structure_fetcher:
+        with FileStructure(port=port) as structure_fetcher:
             return structure_fetcher.get_tree()
 
     def get_version(self, port: str, callback: Callable[[str], None]) -> None:

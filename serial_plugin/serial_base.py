@@ -9,7 +9,7 @@ from config.application_configuration import SERIAL_RATE
 logger = getLogger(__name__)
 
 
-class MicroPythonSerialBase:
+class SerialBase:
     """
     Manages a MicroPython serial connection.
     """
@@ -53,7 +53,7 @@ class MicroPythonSerialBase:
         if self._ser and self._ser.is_open:
             self._ser.close()
 
-    def __enter__(self) -> "MicroPythonSerialBase":
+    def __enter__(self) -> "SerialBase":
         """
         Provides context management for the MicroPythonTree, ensuring resources are
         properly opened and can be safely used within the context.

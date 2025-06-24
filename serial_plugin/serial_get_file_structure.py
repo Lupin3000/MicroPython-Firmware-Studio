@@ -1,12 +1,12 @@
 from logging import getLogger, debug
 from time import time, sleep
-from serial_plugin.base_serial import MicroPythonSerialBase
+from serial_plugin.serial_base import SerialBase
 
 
 logger = getLogger(__name__)
 
 
-class MicroPythonFileStructure(MicroPythonSerialBase):
+class FileStructure(SerialBase):
     """
     Represents a utility for interacting with a MicroPython device to fetch and manage
     a tree structure of the file system over a serial connection.

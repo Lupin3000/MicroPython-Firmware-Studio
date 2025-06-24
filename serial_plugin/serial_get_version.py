@@ -1,12 +1,12 @@
 from logging import getLogger, debug
 from time import sleep
-from serial_plugin.base_serial import MicroPythonSerialBase
+from serial_plugin.serial_base import SerialBase
 
 
 logger = getLogger(__name__)
 
 
-class MicroPythonVersion(MicroPythonSerialBase):
+class Version(SerialBase):
     """
     Represents a utility for interacting with a MicroPython device to fetch the
     current Micropython version information over a serial connection.
