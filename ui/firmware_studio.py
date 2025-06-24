@@ -2,19 +2,21 @@ from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
 from os.path import expanduser
-from tkinter import filedialog, Canvas, Event
+from tkinter import filedialog, Event
 from webbrowser import open_new
 from typing import Optional, Callable
-from PIL import Image
 from queue import Queue, Empty
-from customtkinter import CTkLabel, CTkButton, CTkTextbox, CTkEntry, CTkCheckBox, CTkImage, CTkOptionMenu, CTkSwitch
 from ui.base_ui import BaseUI
+from ui.frame_search_device import FrameSearchDevice
+from ui.frame_device_information import FrameDeviceInformation
+from ui.frame_erase_device import FrameEraseDevice
+from ui.frame_firmware_flash import FrameFirmwareFlash
+from ui.frame_console import FrameConsole
 from esptool_plugin.esptool_command_runner import CommandRunner
 from serial_plugin.serial_command_runner import SerialCommandRunner
-from config.device_configuration import (BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS, FLASH_FREQUENCY_OPTIONS,
-                                         FLASH_SIZE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES)
-from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, RELOAD_ICON, CONSOLE_INFO,
-                                              CONSOLE_COMMAND, CONSOLE_ERROR, LINK_OBJECT)
+from config.device_configuration import BAUDRATE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES
+from config.application_configuration import (FONT_CATEGORY, FONT_DESCRIPTION, CONSOLE_INFO, CONSOLE_COMMAND,
+                                              CONSOLE_ERROR)
 
 
 logger = getLogger(__name__)
@@ -46,211 +48,70 @@ class MicroPythonFirmwareStudio(BaseUI):
             on_complete=self._handle_esptool_complete
         )
 
-        # Top Frame
-        self._device_path_label = CTkLabel(self._top_frame, text='Device Path:')
-        self._device_path_label.pack(side="left", padx=10, pady=10)
-        self._device_path_label.configure(font=FONT_PATH)
+        # Search Device
+        self.search_device = FrameSearchDevice(self)
+        self.search_device.refresh.configure(command=self._search_devices)
+        self.search_device.device_option.configure(command=self._set_device)
 
-        reload_img = CTkImage(light_image=Image.open(RELOAD_ICON))
-        self._refresh = CTkButton(self._top_frame, image=reload_img, text='', width=30)
-        self._refresh.pack(side="right", padx=10, pady=10)
-        self._refresh.configure(command=self._search_devices)
+        # Device Information
+        self.information = FrameDeviceInformation(self)
+        self.information.label.configure(font=FONT_CATEGORY)
+        self.information.chip_info_btn.configure(command=lambda: self._esptool_command("chip_id"))
+        self.information.memory_info_btn.configure(command=lambda: self._esptool_command("flash_id"))
+        self.information.mac_info_btn.configure(command=lambda: self._esptool_command("read_mac"))
+        self.information.flash_status_btn.configure(command=lambda: self._esptool_command("read_flash_status"))
+        self.information.flash_status_btn.pack_forget()
+        self.information.mp_version_btn.configure(command=self._get_version)
+        self.information.mp_version_btn.pack_forget()
+        self.information.mp_structure_btn.configure(command=self._get_structure)
+        self.information.mp_structure_btn.pack_forget()
 
-        self._device_option = CTkOptionMenu(self._top_frame, width=150)
-        self._device_option.pack(side="right", padx=10, pady=10)
-        self._device_option.configure(command=self._set_device)
+        # Erase Device
+        self.erase_device = FrameEraseDevice(self)
+        self.erase_device.label.configure(font=FONT_CATEGORY)
+        self.erase_device.erase_btn.configure(command=lambda: self._esptool_command("erase_flash"))
 
-        # Left Top Frame
-        self._left_label = CTkLabel(self._left_top_frame, text='Information')
-        self._left_label.pack(padx=10, pady=10)
-        self._left_label.configure(font=FONT_CATEGORY)
+        # Flash Firmware
+        self.flash_firmware = FrameFirmwareFlash(self)
+        self.flash_firmware.label.configure(font=FONT_CATEGORY)
+        self.flash_firmware.expert_mode.configure(command=self.toggle_expert_mode)
+        self.flash_firmware.chip_option.set("Select Chip")
+        self.flash_firmware.chip_option.configure(command=self._set_chip)
+        self.flash_firmware.chip_info.configure(font=FONT_DESCRIPTION)
+        self.flash_firmware.firmware_btn.configure(command=self._handle_firmware_selection)
+        self.flash_firmware.link_label.configure(font=(*FONT_DESCRIPTION, "underline"))
+        self.flash_firmware.link_label.bind("<Button-1>", self.open_url)
+        self.flash_firmware.firmware_info.configure(font=FONT_DESCRIPTION)
+        self.flash_firmware.baudrate_option.set(str(self.__selected_baudrate))
+        self.flash_firmware.baudrate_option.configure(command=self._set_baudrate)
+        self.flash_firmware.baudrate_checkbox.select()
+        self.flash_firmware.baudrate_info.configure(font=FONT_DESCRIPTION)
+        self.flash_firmware.sector_input.bind("<KeyRelease>", self._handle_sector_input)
+        self.flash_firmware.sector_info.configure(font=FONT_DESCRIPTION)
+        self.flash_firmware.flash_mode_label.grid_remove()
+        self.flash_firmware.flash_mode_option.set("keep")
+        self.flash_firmware.flash_mode_option.grid_remove()
+        self.flash_firmware.flash_mode_info.grid_remove()
+        self.flash_firmware.flash_frequency_label.grid_remove()
+        self.flash_firmware.flash_frequency_option.set("keep")
+        self.flash_firmware.flash_frequency_option.grid_remove()
+        self.flash_firmware.flash_frequency_info.grid_remove()
+        self.flash_firmware.flash_size_label.grid_remove()
+        self.flash_firmware.flash_size_option.set("detect")
+        self.flash_firmware.flash_size_option.grid_remove()
+        self.flash_firmware.flash_size_info.grid_remove()
+        self.flash_firmware.erase_before_label.grid_remove()
+        self.flash_firmware.erase_before_switch.grid_remove()
+        self.flash_firmware.erase_before_info.grid_remove()
+        self.flash_firmware.flash_btn.configure(command=self._flash_firmware_command)
 
-        self._chip_info_btn = CTkButton(self._left_top_frame, text='Chip ID')
-        self._chip_info_btn.pack(padx=10, pady=5)
-        self._chip_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("chip_id"))
-
-        self._memory_info_btn = CTkButton(self._left_top_frame, text='Flash ID')
-        self._memory_info_btn.pack(padx=10, pady=5)
-        self._memory_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("flash_id"))
-
-        self._mac_info_btn = CTkButton(self._left_top_frame, text='MAC Address')
-        self._mac_info_btn.pack(padx=10, pady=5)
-        self._mac_info_btn.configure(command=lambda: self._prepare_simple_esptool_command("read_mac"))
-
-        self._flash_status_btn = CTkButton(self._left_top_frame, text='Flash Status')
-        self._flash_status_btn.pack(padx=10, pady=5)
-        self._flash_status_btn.configure(command=lambda: self._prepare_simple_esptool_command("read_flash_status"))
-        self._flash_status_btn.pack_forget()
-
-        self._mp_version_btn = CTkButton(self._left_top_frame, text='Version', fg_color='green')
-        self._mp_version_btn.pack(padx=10, pady=5)
-        self._mp_version_btn.configure(command=self._get_version)
-        self._mp_version_btn.pack_forget()
-
-        self._mp_structure_btn = CTkButton(self._left_top_frame, text='File Structure', fg_color='green')
-        self._mp_structure_btn.pack(padx=10, pady=5)
-        self._mp_structure_btn.configure(command=self._get_structure)
-        self._mp_structure_btn.pack_forget()
-
-        # Left Bottom Frame
-        self._left_bottom_label = CTkLabel(self._left_bottom_frame, text='Erase')
-        self._left_bottom_label.pack(padx=10, pady=10)
-        self._left_bottom_label.configure(font=FONT_CATEGORY)
-
-        self._erase_btn = CTkButton(self._left_bottom_frame, text='Erase Flash')
-        self._erase_btn.pack(padx=10, pady=5)
-        self._erase_btn.configure(command=lambda: self._prepare_simple_esptool_command("erase_flash"))
-
-        # Right Frame
-        self._right_label = CTkLabel(self._right_frame, text='Flash Configuration')
-        self._right_label.grid(row=0, column=0, columnspan=5, padx=10, pady=10, sticky="w")
-        self._right_label.configure(font=FONT_CATEGORY)
-
-        self._expert_mode = CTkSwitch(self._right_frame, text='Expert Mode')
-        self._expert_mode.grid(row=0, column=5, padx=10, pady=5, sticky="e")
-        self._expert_mode.configure(command=self.toggle_expert_mode)
-
-        # Right Frame (chip select)
-        self._chip_label = CTkLabel(self._right_frame, text='Step 1:')
-        self._chip_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-
-        chip_options = ["Select Chip"] + list(CONFIGURED_DEVICES.keys())
-        self._chip_option = CTkOptionMenu(self._right_frame, values=chip_options, width=150)
-        self._chip_option.grid(row=1, column=1, padx=10, pady=5, sticky="w")
-        self._chip_option.set("Select Chip")
-        self._chip_option.configure(command=self._set_chip)
-
-        self._chip_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
-        self._chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
-
-        self._chip_info = CTkLabel(self._right_frame, text='Choose the chip type to flash')
-        self._chip_info.grid(row=1, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._chip_info.configure(font=FONT_DESCRIPTION)
-
-        # Right Frame (firmware select)
-        self._firmware_label = CTkLabel(self._right_frame, text='Step 2:')
-        self._firmware_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
-
-        self._firmware_btn = CTkButton(self._right_frame, text='Select Firmware', width=150)
-        self._firmware_btn.grid(row=2, column=1, padx=10, pady=5, sticky="w")
-        self._firmware_btn.configure(command=self._handle_firmware_selection)
-
-        self._firmware_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
-        self._firmware_checkbox.grid(row=2, column=2, padx=10, pady=5, sticky="w")
-
-        self._link_label = CTkLabel(self._right_frame, text='Browse', text_color=LINK_OBJECT, cursor="hand2")
-        self._link_label.grid(row=2, column=3, padx=(10, 0), pady=5, sticky="w")
-        self._link_label.configure(font=(*FONT_DESCRIPTION, "underline"))
-        self._link_label.bind("<Button-1>", self.open_url)
-
-        self._firmware_info = CTkLabel(self._right_frame, text='and select the firmware file to upload')
-        self._firmware_info.grid(row=2, column=4, columnspan=2, padx=(5, 10), pady=5, sticky="w")
-        self._firmware_info.configure(font=FONT_DESCRIPTION)
-
-        # Right Frame (baudrate select)
-        self._baudrate_label = CTkLabel(self._right_frame, text='Step 3:')
-        self._baudrate_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
-
-        self._baudrate_option = CTkOptionMenu(self._right_frame, values=BAUDRATE_OPTIONS, width=150)
-        self._baudrate_option.grid(row=3, column=1, padx=10, pady=5, sticky="w")
-        self._baudrate_option.set(str(self.__selected_baudrate))
-        self._baudrate_option.configure(command=self._set_baudrate)
-
-        self._baudrate_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
-        self._baudrate_checkbox.grid(row=3, column=2, padx=10, pady=5, sticky="w")
-        self._baudrate_checkbox.select()
-
-        self._baudrate_info = CTkLabel(self._right_frame, text='Choose a communication speed')
-        self._baudrate_info.grid(row=3, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._baudrate_info.configure(font=FONT_DESCRIPTION)
-
-        # Right Frame (sector selects)
-        self._sector_label = CTkLabel(self._right_frame, text='Step 4:')
-        self._sector_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
-
-        self._sector_input = CTkEntry(self._right_frame, width=150)
-        self._sector_input.grid(row=4, column=1, padx=10, pady=5, sticky="w")
-        self._sector_input.bind("<KeyRelease>", self._handle_sector_input)
-
-        self._sector_checkbox = CTkCheckBox(self._right_frame, text='', state='disabled', width=20)
-        self._sector_checkbox.grid(row=4, column=2, padx=10, pady=5, sticky="w")
-
-        self._sector_info = CTkLabel(self._right_frame, text='Set the starting address for firmware')
-        self._sector_info.grid(row=4, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._sector_info.configure(font=FONT_DESCRIPTION)
-
-        # Right Frame (expert mode)
-        self._flash_mode_label = CTkLabel(self._right_frame, text='Step 5:')
-        self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-        self._flash_mode_label.grid_remove()
-
-        self._flash_mode_option = CTkOptionMenu(self._right_frame, values=FLASH_MODE_OPTIONS, width=150)
-        self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
-        self._flash_mode_option.set("keep")
-        self._flash_mode_option.grid_remove()
-
-        self._flash_mode_info = CTkLabel(self._right_frame, text='Choose the data transfer mode for flashing')
-        self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._flash_mode_info.grid_remove()
-
-        self._flash_frequency_label = CTkLabel(self._right_frame, text='Step 6:')
-        self._flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-        self._flash_frequency_label.grid_remove()
-
-        self._flash_frequency_option = CTkOptionMenu(self._right_frame, values=FLASH_FREQUENCY_OPTIONS, width=150)
-        self._flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
-        self._flash_frequency_option.set("keep")
-        self._flash_frequency_option.grid_remove()
-
-        self._flash_frequency_info = CTkLabel(self._right_frame, text='Set the clock speed during flash operations')
-        self._flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._flash_frequency_info.grid_remove()
-
-        self._flash_size_label = CTkLabel(self._right_frame, text='Step 7:')
-        self._flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-        self._flash_size_label.grid_remove()
-
-        self._flash_size_option = CTkOptionMenu(self._right_frame, values=FLASH_SIZE_OPTIONS, width=150)
-        self._flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
-        self._flash_size_option.set("detect")
-        self._flash_size_option.grid_remove()
-
-        self._flash_size_info = CTkLabel(self._right_frame, text='Specify or detect the flash memory size')
-        self._flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._flash_size_info.grid_remove()
-
-        self._erase_before_label = CTkLabel(self._right_frame, text='Step 8:')
-        self._erase_before_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
-        self._erase_before_label.grid_remove()
-
-        self._erase_before_switch = CTkSwitch(self._right_frame, text='')
-        self._erase_before_switch.grid(row=8, column=1, padx=10, pady=5, sticky="w")
-        self._erase_before_switch.grid_remove()
-
-        self._erase_before_info = CTkLabel(self._right_frame, text='Erase flash before flashing firmware')
-        self._erase_before_info.grid(row=8, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-        self._erase_before_info.grid_remove()
-
-        # Right Frame (seperator)
-        self._separator_canvas = Canvas(self._right_frame, height=1, highlightthickness=0, bg="white", bd=0)
-        self._separator_canvas.grid(row=9, columnspan=6, sticky="ew", padx=10, pady=10)
-
-        # Right Frame (start firmware flash)
-        self._flash_btn = CTkButton(self._right_frame, text='Flash Firmware')
-        self._flash_btn.grid(row=10, column=1, columnspan=5, padx=10, pady=5, sticky="w")
-        self._flash_btn.configure(command=self._prepare_flash_firmware_command)
-
-        # Bottom Frame
-        self._bottom_label = CTkLabel(self._bottom_frame, text='Console Output')
-        self._bottom_label.pack(padx=10, pady=10)
-        self._bottom_label.configure(font=FONT_CATEGORY)
-
-        self._console_text = CTkTextbox(self._bottom_frame, width=800, height=300)
-        self._console_text.pack(padx=10, pady=10, fill="both", expand=True)
-        self._console_text.tag_config("info", foreground=CONSOLE_INFO)
-        self._console_text.tag_config("normal", foreground=CONSOLE_COMMAND)
-        self._console_text.tag_config("error", foreground=CONSOLE_ERROR)
-        self._console_text.bind("<Key>", BaseUI._block_text_input)
+        # Console
+        self.console = FrameConsole(self)
+        self.console.label.configure(font=FONT_CATEGORY)
+        self.console.console_text.tag_config("info", foreground=CONSOLE_INFO)
+        self.console.console_text.tag_config("normal", foreground=CONSOLE_COMMAND)
+        self.console.console_text.tag_config("error", foreground=CONSOLE_ERROR)
+        self.console.console_text.bind("<Key>", BaseUI._block_text_input)
 
         # search for devices on the start
         self._search_devices()
@@ -277,42 +138,42 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        if self._expert_mode.get():
+        if self.flash_firmware.expert_mode.get():
             debug('Expert mode enabled')
             self.__expert_mode = True
-            self._flash_status_btn.pack(padx=10, pady=5)
-            self._mp_version_btn.pack(padx=10, pady=5)
-            self._mp_structure_btn.pack(padx=10, pady=5)
-            self._flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-            self._flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
-            self._flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-            self._flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-            self._flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
-            self._flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-            self._flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-            self._flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
-            self._flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")
-            self._erase_before_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
-            self._erase_before_switch.grid(row=8, column=1, padx=10, pady=5, sticky="w")
-            self._erase_before_info.grid(row=8, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self.information.flash_status_btn.pack(padx=10, pady=5)
+            self.information.mp_version_btn.pack(padx=10, pady=5)
+            self.information.mp_structure_btn.pack(padx=10, pady=5)
+            self.flash_firmware.flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_frequency_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_size_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
+            self.flash_firmware.flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+            self.flash_firmware.erase_before_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
+            self.flash_firmware.erase_before_switch.grid(row=8, column=1, padx=10, pady=5, sticky="w")
+            self.flash_firmware.erase_before_info.grid(row=8, column=3, columnspan=3, padx=10, pady=5, sticky="w")
         else:
             debug('Expert mode disabled')
             self.__expert_mode = False
-            self._flash_status_btn.pack_forget()
-            self._mp_version_btn.pack_forget()
-            self._mp_structure_btn.pack_forget()
-            self._flash_mode_label.grid_remove()
-            self._flash_mode_option.grid_remove()
-            self._flash_mode_info.grid_remove()
-            self._flash_frequency_label.grid_remove()
-            self._flash_frequency_option.grid_remove()
-            self._flash_frequency_info.grid_remove()
-            self._flash_size_label.grid_remove()
-            self._flash_size_option.grid_remove()
-            self._flash_size_info.grid_remove()
-            self._erase_before_label.grid_remove()
-            self._erase_before_switch.grid_remove()
-            self._erase_before_info.grid_remove()
+            self.information.flash_status_btn.pack_forget()
+            self.information.mp_version_btn.pack_forget()
+            self.information.mp_structure_btn.pack_forget()
+            self.flash_firmware.flash_mode_label.grid_remove()
+            self.flash_firmware.flash_mode_option.grid_remove()
+            self.flash_firmware.flash_mode_info.grid_remove()
+            self.flash_firmware.flash_frequency_label.grid_remove()
+            self.flash_firmware.flash_frequency_option.grid_remove()
+            self.flash_firmware.flash_frequency_info.grid_remove()
+            self.flash_firmware.flash_size_label.grid_remove()
+            self.flash_firmware.flash_size_option.grid_remove()
+            self.flash_firmware.flash_size_info.grid_remove()
+            self.flash_firmware.erase_before_label.grid_remove()
+            self.flash_firmware.erase_before_switch.grid_remove()
+            self.flash_firmware.erase_before_info.grid_remove()
 
     def _poll_console_queue(self) -> None:
         """
@@ -328,8 +189,8 @@ class MicroPythonFirmwareStudio(BaseUI):
         try:
             while True:
                 line = self._console_queue.get_nowait()
-                self._console_text.insert("end", f'{line}\n', "normal")
-                self._console_text.see("end")
+                self.console.console_text.insert("end", f'{line}\n', "normal")
+                self.console.console_text.see("end")
         except Empty:
             pass
 
@@ -341,7 +202,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        self._console_text.delete("1.0", "end")
+        self.console.console_text.delete("1.0", "end")
 
     def _disable_buttons(self) -> None:
         """
@@ -349,14 +210,14 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        self._chip_info_btn.configure(state='disabled')
-        self._memory_info_btn.configure(state='disabled')
-        self._mac_info_btn.configure(state='disabled')
-        self._flash_status_btn.configure(state='disabled')
-        self._mp_version_btn.configure(state='disabled')
-        self._mp_structure_btn.configure(state='disabled')
-        self._erase_btn.configure(state='disabled')
-        self._flash_btn.configure(state='disabled')
+        self.information.chip_info_btn.configure(state='disabled')
+        self.information.memory_info_btn.configure(state='disabled')
+        self.information.mac_info_btn.configure(state='disabled')
+        self.information.flash_status_btn.configure(state='disabled')
+        self.information.mp_version_btn.configure(state='disabled')
+        self.information.mp_structure_btn.configure(state='disabled')
+        self.erase_device.erase_btn.configure(state='disabled')
+        self.flash_firmware.flash_btn.configure(state='disabled')
 
     def _enable_buttons(self) -> None:
         """
@@ -364,14 +225,14 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        self._chip_info_btn.configure(state='normal')
-        self._memory_info_btn.configure(state='normal')
-        self._mac_info_btn.configure(state='normal')
-        self._flash_status_btn.configure(state='normal')
-        self._mp_version_btn.configure(state='normal')
-        self._mp_structure_btn.configure(state='normal')
-        self._erase_btn.configure(state='normal')
-        self._flash_btn.configure(state='normal')
+        self.information.chip_info_btn.configure(state='normal')
+        self.information.memory_info_btn.configure(state='normal')
+        self.information.mac_info_btn.configure(state='normal')
+        self.information.flash_status_btn.configure(state='normal')
+        self.information.mp_version_btn.configure(state='normal')
+        self.information.mp_structure_btn.configure(state='normal')
+        self.erase_device.erase_btn.configure(state='normal')
+        self.flash_firmware.flash_btn.configure(state='normal')
 
     def _search_devices(self) -> None:
         """
@@ -380,7 +241,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        current_selection = self._device_option.get()
+        current_selection = self.search_device.device_option.get()
 
         if self._current_platform in ["Linux", "Darwin"]:
             devices = glob(self._device_search_path)
@@ -393,12 +254,12 @@ class MicroPythonFirmwareStudio(BaseUI):
             devices.insert(0, 'Select Device')
 
         debug(f'Devices: {devices}')
-        self._device_option.configure(values=devices)
+        self.search_device.device_option.configure(values=devices)
 
         if current_selection in devices:
-            self._device_option.set(current_selection)
+            self.search_device.device_option.set(current_selection)
         else:
-            self._device_option.set(devices[0])
+            self.search_device.device_option.set(devices[0])
             self._set_device(None)
 
     def _set_device(self, selected_device: Optional[str]) -> None:
@@ -413,10 +274,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         if selected_device and selected_device not in ("Select Device", "No devices found"):
             info(f'Selected device: {selected_device}')
             self.__device_path = selected_device
-            self._device_path_label.configure(text=f'Device Path: {self.__device_path}')
+            self.search_device.device_path_label.configure(text=f'Device Path: {self.__device_path}')
         else:
             self.__device_path = None
-            self._device_path_label.configure(text='Device Path:')
+            self.search_device.device_path_label.configure(text='Device Path:')
 
     def _set_chip(self, selection: str) -> None:
         """
@@ -430,16 +291,16 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if selection != "Select Chip":
             self.__selected_chip = CONFIGURED_DEVICES[selection]["name"]
-            self._sector_input.delete(0, "end")
-            self._sector_input.insert(0, hex(CONFIGURED_DEVICES[selection]["write_flash"]))
-            self._chip_checkbox.select()
-            self._baudrate_checkbox.select()
-            self._sector_checkbox.select()
+            self.flash_firmware.sector_input.delete(0, "end")
+            self.flash_firmware.sector_input.insert(0, hex(CONFIGURED_DEVICES[selection]["write_flash"]))
+            self.flash_firmware.chip_checkbox.select()
+            self.flash_firmware.baudrate_checkbox.select()
+            self.flash_firmware.sector_checkbox.select()
             self.__url = CONFIGURED_DEVICES[selection]["url"]
         else:
             self.__selected_chip = None
-            self._sector_input.delete(0, "end")
-            self._chip_checkbox.deselect()
+            self.flash_firmware.sector_input.delete(0, "end")
+            self.flash_firmware.chip_checkbox.deselect()
             self.__url = DEFAULT_URL
 
     def _set_baudrate(self, selection: str) -> None:
@@ -454,10 +315,10 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if selection and selection in BAUDRATE_OPTIONS:
             self.__selected_baudrate = int(selection)
-            self._baudrate_checkbox.select()
+            self.flash_firmware.baudrate_checkbox.select()
         else:
             self.__selected_baudrate = None
-            self._baudrate_checkbox.deselect()
+            self.flash_firmware.baudrate_checkbox.deselect()
 
     def _handle_sector_input(self, event: Optional[Event] = None) -> None:
         """
@@ -470,10 +331,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         _ = event
 
         try:
-            int(self._sector_input.get().strip(), 0)
-            self._sector_checkbox.select()
+            int(self.flash_firmware.sector_input.get().strip(), 0)
+            self.flash_firmware.sector_checkbox.select()
         except ValueError:
-            self._sector_checkbox.deselect()
+            self.flash_firmware.sector_checkbox.deselect()
 
     def _handle_firmware_selection(self) -> None:
         """
@@ -492,10 +353,10 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if file_path:
             self.__selected_firmware = file_path
-            self._firmware_checkbox.select()
+            self.flash_firmware.firmware_checkbox.select()
         else:
             self.__selected_firmware = None
-            self._firmware_checkbox.deselect()
+            self.flash_firmware.firmware_checkbox.deselect()
 
     def _handle_serial_output(self, output: str, context: Optional[str] = None) -> None:
         """
@@ -528,11 +389,11 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         if not self.__device_path:
             error('No device selected!')
-            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
+            self.console.console_text.insert("end", '[ERROR] No device selected!\n', "error")
             return
 
         self._disable_buttons()
-        self._console_text.insert("end", f'[INFO] {info_text}...\n', "info")
+        self.console.console_text.insert("end", f'[INFO] {info_text}...\n', "info")
 
         runner = SerialCommandRunner()
         command(runner)
@@ -583,7 +444,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         :type text: str
         :return: None
         """
-        self.after(0, lambda: self._console_text.insert("end", f'[ERROR] {text}\n', "error"))
+        self.after(0, lambda: self.console.console_text.insert("end", f'[ERROR] {text}\n', "error"))
 
     def _handle_esptool_complete(self) -> None:
         """
@@ -593,7 +454,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         """
         self.after(0, lambda: self._enable_buttons())
 
-    def _prepare_simple_esptool_command(self, command_name: str) -> None:
+    def _esptool_command(self, command_name: str) -> None:
         """
         Validate and prepares a simple esptool command based on user input.
 
@@ -607,12 +468,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         allowed_commands = {"chip_id", "flash_id", "read_mac", "read_flash_status", "erase_flash"}
         if command_name not in allowed_commands:
             error(f'Invalid command: {command_name}')
-            self._console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n', "error")
+            self.console.console_text.insert("end", f'[ERROR] Invalid command: {command_name}\n', "error")
             return
 
         if not self.__device_path:
             error('No device selected!')
-            self._console_text.insert("end", '[ERROR] No device selected!\n', "error")
+            self.console.console_text.insert("end", '[ERROR] No device selected!\n', "error")
             return
 
         chip = self.__selected_chip if self.__selected_chip else "auto"
@@ -623,10 +484,10 @@ class MicroPythonFirmwareStudio(BaseUI):
                command_name]
 
         self._disable_buttons()
-        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
+        self.console.console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self.esptool_runner.run_threaded_command(command=cmd)
 
-    def _prepare_flash_firmware_command(self) -> None:
+    def _flash_firmware_command(self) -> None:
         """
         Validate and prepares the esptool flash firmware command based on user input.
 
@@ -648,34 +509,34 @@ class MicroPythonFirmwareStudio(BaseUI):
         if not self.__selected_baudrate:
             errors.append('No baudrate selected')
 
-        if not self._sector_input.get().strip():
+        if not self.flash_firmware.sector_input.get().strip():
             errors.append('No sector value provided')
 
         if errors:
             error(f'Found errors: {errors}')
-            self._console_text.insert("end", f'[ERROR] {", ".join(errors)}\n', "error")
+            self.console.console_text.insert("end", f'[ERROR] {", ".join(errors)}\n', "error")
             return
 
         cmd = ["python", "-m", "esptool",
                '-p', self.__device_path,
                '-c', self.__selected_chip,
                '-b', str(self.__selected_baudrate),
-               'write_flash', self._sector_input.get().strip(),
+               'write_flash', self.flash_firmware.sector_input.get().strip(),
                self.__selected_firmware]
 
         if self.__expert_mode:
-            flash_mode = self._flash_mode_option.get().strip()
-            flash_freq = self._flash_frequency_option.get().strip()
-            flash_size = self._flash_size_option.get().strip()
+            flash_mode = self.flash_firmware.flash_mode_option.get().strip()
+            flash_freq = self.flash_firmware.flash_frequency_option.get().strip()
+            flash_size = self.flash_firmware.flash_size_option.get().strip()
 
             expert_args = ['-fm', flash_mode, '-ff', flash_freq, '-fs', flash_size]
 
-            if self._erase_before_switch.get():
+            if self.flash_firmware.erase_before_switch.get():
                 expert_args.append('-e')
 
             index = cmd.index('write_flash') + 1
             cmd = cmd[:index] + expert_args + cmd[index:]
 
         self._disable_buttons()
-        self._console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
+        self.console.console_text.insert("end", f'[INFO] {" ".join(cmd)}\n\n', "info")
         self.esptool_runner.run_threaded_command(command=cmd)

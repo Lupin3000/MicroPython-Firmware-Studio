@@ -1,0 +1,24 @@
+from customtkinter import CTkFrame, CTkLabel, CTkTextbox
+
+
+class FrameConsole(CTkFrame):
+    """
+    A specialized class designed to facilitate console output operations.
+    """
+
+    def __init__(self, master, *args, **kwargs):
+        """
+        A custom frame designed with widgets for erasing flash. This frame
+        is a child of the specified parent widget (master) and includes a
+        Label and a Textbox with customizable UI features.
+        """
+        super().__init__(master, *args, **kwargs)
+
+        self.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+        self.grid_columnconfigure(0, weight=1)
+
+        self.label = CTkLabel(self, text='Console Output')
+        self.label.pack(padx=10, pady=10)
+
+        self.console_text = CTkTextbox(self, width=800, height=300)
+        self.console_text.pack(padx=10, pady=10, fill="both", expand=True)
