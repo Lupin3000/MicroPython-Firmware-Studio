@@ -3,6 +3,7 @@ from threading import Thread
 from typing import Callable
 from .serial_get_version import Version
 from .serial_get_file_structure import FileStructure
+from .serial_monitor import Debug
 
 
 logger = getLogger(__name__)
@@ -40,6 +41,11 @@ class SerialCommandRunner:
         thread.start()
 
     @staticmethod
+    def _run_monitor(port: str) -> str:
+        with Debug(port=port) as monitor:
+            return monitor.get_debug()
+
+    @staticmethod
     def _get_version(port: str) -> str:
         """
         Fetches and returns the version of MicroPython from a given port.
@@ -64,6 +70,9 @@ class SerialCommandRunner:
         """
         with FileStructure(port=port) as structure_fetcher:
             return structure_fetcher.get_tree()
+
+    def get_debug(self, port: str, callback: Callable[[str], None]) -> None:
+        self._run_in_thread(lambda: self._run_monitor(port), callback)
 
     def get_version(self, port: str, callback: Callable[[str], None]) -> None:
         """

@@ -25,8 +25,8 @@ class FramePlugIns(CTkFrame):
         self.label = CTkLabel(self, text='PlugIns')
         self.label.pack(padx=10, pady=10)
 
-        self.mp_debug_btn = CTkButton(self, text='Debug', fg_color='green')
-        self.mp_debug_btn.pack(padx=10, pady=5)
+        # self.mp_debug_btn = CTkButton(self, text='Debug', fg_color='green')
+        # self.mp_debug_btn.pack(padx=10, pady=5)
 
         self.mp_version_btn = CTkButton(self, text='Version', fg_color='green')
         self.mp_version_btn.pack(padx=10, pady=5)
