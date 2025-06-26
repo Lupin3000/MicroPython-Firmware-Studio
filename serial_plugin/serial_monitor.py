@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 class Debug(SerialBase):
     """
     Represents a utility for interacting with a device to fetch the
-    current console output over a serial connection for specific time.
+    current console output over a serial connection for a specific time.
     """
 
     def get_debug(self, seconds: int = SERIAL_SECONDS) -> str:
