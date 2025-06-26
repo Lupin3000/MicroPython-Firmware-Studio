@@ -1,6 +1,6 @@
 from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkButton
-from config.application_configuration import FONT_CATEGORY
+from config.application_configuration import FONT_CATEGORY, FRAME_BTN_COLOR_ERASE
 
 
 logger = getLogger(__name__)
@@ -27,5 +27,5 @@ class FrameEraseDevice(CTkFrame):
         self.label.pack(padx=10, pady=10)
         self.label.configure(font=FONT_CATEGORY)
 
-        self.erase_btn = CTkButton(self, text='Erase Flash', fg_color='red')
+        self.erase_btn = CTkButton(self, text='Erase Flash', fg_color=FRAME_BTN_COLOR_ERASE)
         self.erase_btn.pack(padx=10, pady=5)

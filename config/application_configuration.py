@@ -21,3 +21,6 @@ RELOAD_ICON: str = 'img/reload.png'
 # plugin
 SERIAL_RATE: int = 115200
 SERIAL_SECONDS: int = 5
+FRAME_BTN_COLOR_ERASE: str = 'red'
+FRAME_BTN_COLOR_INFORMATION: str = 'green'
+FRAME_BTN_COLOR_PLUGINS: str = 'plum4'
