@@ -1,7 +1,7 @@
 from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkSwitch, CTkOptionMenu, CTkCheckBox, CTkButton, CTkEntry
 from tkinter import Canvas
-from config.application_configuration import LINK_OBJECT
+from config.application_configuration import FONT_CATEGORY, FONT_DESCRIPTION, LINK_OBJECT
 from config.device_configuration import (CONFIGURED_DEVICES, BAUDRATE_OPTIONS, FLASH_MODE_OPTIONS,
                                          FLASH_FREQUENCY_OPTIONS, FLASH_SIZE_OPTIONS)
 
@@ -30,6 +30,7 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.label = CTkLabel(self, text='Flash Configuration')
         self.label.grid(row=0, column=0, columnspan=5, padx=10, pady=10, sticky="w")
+        self.label.configure(font=FONT_CATEGORY)
 
         self.expert_mode = CTkSwitch(self, text='Expert Mode')
         self.expert_mode.grid(row=0, column=5, padx=10, pady=5, sticky="e")
@@ -40,12 +41,14 @@ class FrameFirmwareFlash(CTkFrame):
         chip_options = ["Select Chip"] + list(CONFIGURED_DEVICES.keys())
         self.chip_option = CTkOptionMenu(self, values=chip_options, width=150)
         self.chip_option.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+        self.chip_option.set("Select Chip")
 
         self.chip_checkbox = CTkCheckBox(self, text='', state='disabled', width=20)
         self.chip_checkbox.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
         self.chip_info = CTkLabel(self, text='Choose the chip type to flash')
         self.chip_info.grid(row=1, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self.chip_info.configure(font=FONT_DESCRIPTION)
 
         self.firmware_label = CTkLabel(self, text='Step 2:')
         self.firmware_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
@@ -58,9 +61,11 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.link_label = CTkLabel(self, text='Browse', text_color=LINK_OBJECT, cursor="hand2")
         self.link_label.grid(row=2, column=3, padx=(10, 0), pady=5, sticky="w")
+        self.link_label.configure(font=(*FONT_DESCRIPTION, "underline"))
 
         self.firmware_info = CTkLabel(self, text='and select the firmware file to upload')
         self.firmware_info.grid(row=2, column=4, columnspan=2, padx=(5, 10), pady=5, sticky="w")
+        self.firmware_info.configure(font=FONT_DESCRIPTION)
 
         self.baudrate_label = CTkLabel(self, text='Step 3:')
         self.baudrate_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
@@ -73,6 +78,7 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.baudrate_info = CTkLabel(self, text='Choose a communication speed')
         self.baudrate_info.grid(row=3, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self.baudrate_info.configure(font=FONT_DESCRIPTION)
 
         self.sector_label = CTkLabel(self, text='Step 4:')
         self.sector_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
@@ -85,12 +91,14 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.sector_info = CTkLabel(self, text='Set the starting address for firmware')
         self.sector_info.grid(row=4, column=3, columnspan=3, padx=10, pady=5, sticky="w")
+        self.sector_info.configure(font=FONT_DESCRIPTION)
 
         self.flash_mode_label = CTkLabel(self, text='Step 5:')
         self.flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
 
         self.flash_mode_option = CTkOptionMenu(self, values=FLASH_MODE_OPTIONS, width=150)
         self.flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
+        self.flash_mode_option.set("keep")
 
         self.flash_mode_info = CTkLabel(self, text='Choose the data transfer mode for flashing')
         self.flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -100,6 +108,7 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.flash_frequency_option = CTkOptionMenu(self, values=FLASH_FREQUENCY_OPTIONS, width=150)
         self.flash_frequency_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
+        self.flash_frequency_option.set("keep")
 
         self.flash_frequency_info = CTkLabel(self, text='Set the clock speed during flash operations')
         self.flash_frequency_info.grid(row=6, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -109,6 +118,7 @@ class FrameFirmwareFlash(CTkFrame):
 
         self.flash_size_option = CTkOptionMenu(self, values=FLASH_SIZE_OPTIONS, width=150)
         self.flash_size_option.grid(row=7, column=1, padx=10, pady=5, sticky="w")
+        self.flash_size_option.set("detect")
 
         self.flash_size_info = CTkLabel(self, text='Specify or detect the flash memory size')
         self.flash_size_info.grid(row=7, column=3, columnspan=3, padx=10, pady=5, sticky="w")

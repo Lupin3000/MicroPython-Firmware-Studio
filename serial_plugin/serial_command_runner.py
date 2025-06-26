@@ -15,7 +15,6 @@ class SerialCommandRunner:
     serial ports, such as version and file structure data.
     """
 
-
     @staticmethod
     def _run_in_thread(worker: Callable[[], str], callback: Callable[[str], None]) -> None:
         """
@@ -42,6 +41,14 @@ class SerialCommandRunner:
 
     @staticmethod
     def _run_monitor(port: str) -> str:
+        """
+        Executes a monitor utility for a given port and retrieves debug information.
+
+        :param port: The serial port to connect to.
+        :type port: str
+        :return: The debug information as a string.
+        :rtype: str
+        """
         with Debug(port=port) as monitor:
             return monitor.get_debug()
 
@@ -72,6 +79,16 @@ class SerialCommandRunner:
             return structure_fetcher.get_tree()
 
     def get_debug(self, port: str, callback: Callable[[str], None]) -> None:
+        """
+        Invokes a debug process in a separate thread. The function runs a monitoring
+        process for the provided port and applies the specified callback upon completion.
+
+        :param port: The serial port to connect to.
+        :type port: str
+        :param callback: The function to be executed with the result.
+        :type callback: Callable[[str], None]
+        :return: None
+        """
         self._run_in_thread(lambda: self._run_monitor(port), callback)
 
     def get_version(self, port: str, callback: Callable[[str], None]) -> None:

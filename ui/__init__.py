@@ -10,7 +10,7 @@ from .frame_search_device import FrameSearchDevice
 
 __all__ = ["BaseUI",
            "CommandRunner",
-            "FrameConsole",
+           "FrameConsole",
            "FrameSearchDevice",
            "FrameDeviceInformation",
            "FrameEraseDevice",

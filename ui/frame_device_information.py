@@ -1,5 +1,6 @@
 from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkButton
+from config.application_configuration import FONT_CATEGORY
 
 
 logger = getLogger(__name__)
@@ -24,6 +25,7 @@ class FrameDeviceInformation(CTkFrame):
 
         self.label = CTkLabel(self, text='Information')
         self.label.pack(padx=10, pady=10)
+        self.label.configure(font=FONT_CATEGORY)
 
         self.chip_info_btn = CTkButton(self, text='Chip ID')
         self.chip_info_btn.pack(padx=10, pady=5)

@@ -2,10 +2,11 @@ from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
 from os.path import expanduser
+from customtkinter import CTkButton, CTkFrame
 from tkinter import filedialog, Event
 from webbrowser import open_new
-from typing import Optional, Callable
 from queue import Queue, Empty
+from typing import Optional, Callable, Tuple
 from ui.base_ui import BaseUI
 from ui.frame_device_information import FrameDeviceInformation
 from ui.frame_erase_device import FrameEraseDevice
@@ -16,8 +17,6 @@ from ui.frame_plugins import FramePlugIns
 from esptool_plugin.esptool_command_runner import CommandRunner
 from serial_plugin.serial_command_runner import SerialCommandRunner
 from config.device_configuration import BAUDRATE_OPTIONS, DEFAULT_URL, CONFIGURED_DEVICES
-from config.application_configuration import (FONT_PATH, FONT_CATEGORY, FONT_DESCRIPTION, CONSOLE_INFO,
-                                              CONSOLE_COMMAND, CONSOLE_ERROR)
 
 
 logger = getLogger(__name__)
@@ -55,74 +54,62 @@ class MicroPythonFirmwareStudio(BaseUI):
         debug('Adding frames to UI and configuring elements')
         # Search Device
         self.search_device = FrameSearchDevice(self)
-        self.search_device.label.configure(font=FONT_PATH)
         self.search_device.reload_btn.configure(command=self._search_devices)
         self.search_device.device_option.configure(command=self._set_device)
 
         # Device Information
         self.information = FrameDeviceInformation(self)
-        self.information.label.configure(font=FONT_CATEGORY)
+
         self.information.chip_info_btn.configure(command=lambda: self._esptool_command("chip_id"))
         self.information.memory_info_btn.configure(command=lambda: self._esptool_command("flash_id"))
         self.information.mac_info_btn.configure(command=lambda: self._esptool_command("read_mac"))
-        self.information.mac_info_btn.pack_forget()
         self.information.flash_status_btn.configure(command=lambda: self._esptool_command("read_flash_status"))
+
+        self.information.mac_info_btn.pack_forget()
         self.information.flash_status_btn.pack_forget()
 
         # PlugIns
         self.plugins = FramePlugIns(self)
-        self.plugins.label.configure(font=FONT_CATEGORY)
-        # self.plugins.mp_debug_btn.configure(command=self._debug_device)
+
+        self.plugins.mp_debug_btn.configure(command=self._handler_toplevel_serial_debug)
         self.plugins.mp_version_btn.configure(command=self._get_version)
-        self.plugins.mp_version_btn.pack_forget()
         self.plugins.mp_structure_btn.configure(command=self._get_structure)
+
+        self.plugins.mp_version_btn.pack_forget()
         self.plugins.mp_structure_btn.pack_forget()
 
         # Erase Device
         self.erase_device = FrameEraseDevice(self)
-        self.erase_device.label.configure(font=FONT_CATEGORY)
         self.erase_device.erase_btn.configure(command=lambda: self._esptool_command("erase_flash"))
 
         # Flash Firmware
         self.flash_firmware = FrameFirmwareFlash(self)
-        self.flash_firmware.label.configure(font=FONT_CATEGORY)
+
         self.flash_firmware.expert_mode.configure(command=self.toggle_expert_mode)
-        self.flash_firmware.chip_option.set("Select Chip")
         self.flash_firmware.chip_option.configure(command=self._set_chip)
-        self.flash_firmware.chip_info.configure(font=FONT_DESCRIPTION)
         self.flash_firmware.firmware_btn.configure(command=self._handle_firmware_selection)
-        self.flash_firmware.link_label.configure(font=(*FONT_DESCRIPTION, "underline"))
         self.flash_firmware.link_label.bind("<Button-1>", self.open_url)
-        self.flash_firmware.firmware_info.configure(font=FONT_DESCRIPTION)
         self.flash_firmware.baudrate_option.set(str(self.__selected_baudrate))
         self.flash_firmware.baudrate_option.configure(command=self._set_baudrate)
         self.flash_firmware.baudrate_checkbox.select()
-        self.flash_firmware.baudrate_info.configure(font=FONT_DESCRIPTION)
         self.flash_firmware.sector_input.bind("<KeyRelease>", self._handle_sector_input)
-        self.flash_firmware.sector_info.configure(font=FONT_DESCRIPTION)
+        self.flash_firmware.flash_btn.configure(command=self._flash_firmware_command)
+
         self.flash_firmware.flash_mode_label.grid_remove()
-        self.flash_firmware.flash_mode_option.set("keep")
         self.flash_firmware.flash_mode_option.grid_remove()
         self.flash_firmware.flash_mode_info.grid_remove()
         self.flash_firmware.flash_frequency_label.grid_remove()
-        self.flash_firmware.flash_frequency_option.set("keep")
         self.flash_firmware.flash_frequency_option.grid_remove()
         self.flash_firmware.flash_frequency_info.grid_remove()
         self.flash_firmware.flash_size_label.grid_remove()
-        self.flash_firmware.flash_size_option.set("detect")
         self.flash_firmware.flash_size_option.grid_remove()
         self.flash_firmware.flash_size_info.grid_remove()
         self.flash_firmware.erase_before_label.grid_remove()
         self.flash_firmware.erase_before_switch.grid_remove()
         self.flash_firmware.erase_before_info.grid_remove()
-        self.flash_firmware.flash_btn.configure(command=self._flash_firmware_command)
 
         # Console
         self.console = FrameConsole(self)
-        self.console.label.configure(font=FONT_CATEGORY)
-        self.console.console_text.tag_config("info", foreground=CONSOLE_INFO)
-        self.console.console_text.tag_config("normal", foreground=CONSOLE_COMMAND)
-        self.console.console_text.tag_config("error", foreground=CONSOLE_ERROR)
         self.console.console_text.bind("<Key>", BaseUI._block_text_input)
 
         debug('Searching for USB devices')
@@ -226,15 +213,17 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        self.information.chip_info_btn.configure(state='disabled')
-        self.information.memory_info_btn.configure(state='disabled')
-        self.information.mac_info_btn.configure(state='disabled')
-        self.information.flash_status_btn.configure(state='disabled')
-        # self.plugins.mp_debug_btn.configure(state='disabled')
-        self.plugins.mp_version_btn.configure(state='disabled')
-        self.plugins.mp_structure_btn.configure(state='disabled')
-        self.erase_device.erase_btn.configure(state='disabled')
-        self.flash_firmware.flash_btn.configure(state='disabled')
+        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device, self.flash_firmware)
+
+        buttons = [
+            widget
+            for frame in frames if isinstance(frame, CTkFrame)
+            for widget in frame.winfo_children()
+            if isinstance(widget, CTkButton)
+        ]
+
+        for button in buttons:
+            button.configure(state='disabled')
 
     def _enable_buttons(self) -> None:
         """
@@ -242,15 +231,17 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        self.information.chip_info_btn.configure(state='normal')
-        self.information.memory_info_btn.configure(state='normal')
-        self.information.mac_info_btn.configure(state='normal')
-        self.information.flash_status_btn.configure(state='normal')
-        # self.plugins.mp_debug_btn.configure(state='normal')
-        self.plugins.mp_version_btn.configure(state='normal')
-        self.plugins.mp_structure_btn.configure(state='normal')
-        self.erase_device.erase_btn.configure(state='normal')
-        self.flash_firmware.flash_btn.configure(state='normal')
+        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device, self.flash_firmware)
+
+        buttons = [
+            widget
+            for frame in frames if isinstance(frame, CTkFrame)
+            for widget in frame.winfo_children()
+            if isinstance(widget, CTkButton)
+        ]
+
+        for button in buttons:
+            button.configure(state='normal')
 
     def _search_devices(self) -> None:
         """
@@ -416,8 +407,19 @@ class MicroPythonFirmwareStudio(BaseUI):
         runner = SerialCommandRunner()
         command(runner)
 
-    def _debug_device(self) -> None:
-        pass
+    def _handler_toplevel_serial_debug(self) -> None:
+        """
+        Handles the creation or focus of a top-level debug window.
+
+        :return: None
+        """
+        self._run_serial_task(
+            info_text="Start Serial debugging",
+            command=lambda runner: runner.get_debug(
+                port=self.__device_path,
+                callback=lambda output: self._handle_serial_output(output)
+            )
+        )
 
     def _get_version(self) -> None:
         """

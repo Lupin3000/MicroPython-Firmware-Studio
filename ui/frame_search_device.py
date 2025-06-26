@@ -1,7 +1,7 @@
 from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkImage, CTkButton, CTkOptionMenu
 from PIL import Image
-from config.application_configuration import RELOAD_ICON
+from config.application_configuration import FONT_PATH, RELOAD_ICON
 
 
 logger = getLogger(__name__)
@@ -25,6 +25,7 @@ class FrameSearchDevice(CTkFrame):
 
         self.label = CTkLabel(self, text='Device Path:')
         self.label.pack(side="left", padx=10, pady=10)
+        self.label.configure(font=FONT_PATH)
 
         reload_img = CTkImage(light_image=Image.open(RELOAD_ICON))
 

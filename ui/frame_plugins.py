@@ -1,5 +1,6 @@
 from logging import getLogger, debug
 from customtkinter import CTkFrame, CTkLabel, CTkButton
+from config.application_configuration import FONT_CATEGORY, SERIAL_SECONDS
 
 
 logger = getLogger(__name__)
@@ -24,9 +25,10 @@ class FramePlugIns(CTkFrame):
 
         self.label = CTkLabel(self, text='PlugIns')
         self.label.pack(padx=10, pady=10)
+        self.label.configure(font=FONT_CATEGORY)
 
-        # self.mp_debug_btn = CTkButton(self, text='Debug', fg_color='green')
-        # self.mp_debug_btn.pack(padx=10, pady=5)
+        self.mp_debug_btn = CTkButton(self, text=f'{SERIAL_SECONDS}s Debug', fg_color='green')
+        self.mp_debug_btn.pack(padx=10, pady=5)
 
         self.mp_version_btn = CTkButton(self, text='Version', fg_color='green')
         self.mp_version_btn.pack(padx=10, pady=5)

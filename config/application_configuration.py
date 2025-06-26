@@ -1,7 +1,6 @@
 # application settings
 TITLE: str = 'MicroPython Firmware Studio'
 LOG_LEVEL: str = 'INFO'
-SERIAL_RATE: int = 115200
 
 # application colors
 APPEARANCE_MODE: str = 'dark'
@@ -18,3 +17,7 @@ FONT_DESCRIPTION: tuple = ('Arial', 14)
 
 # images
 RELOAD_ICON: str = 'img/reload.png'
+
+# plugin
+SERIAL_RATE: int = 115200
+SERIAL_SECONDS: int = 5
