@@ -34,7 +34,7 @@ class SerialCommandRunner:
                 result = f"[ERROR] {str(e)}"
 
             callback(result)
-            debug(f"[DEBUG] callback result: {result}")
+            debug(f"callback result: {result}")
 
         thread = Thread(target=task, daemon=True)
         thread.start()
