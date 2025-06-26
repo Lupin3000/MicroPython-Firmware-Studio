@@ -3,7 +3,7 @@ from signal import signal, SIGINT
 from atexit import register
 from customtkinter import set_appearance_mode, set_default_color_theme
 from config.application_configuration import APPEARANCE_MODE, COLOR_THEME, TITLE, LOG_LEVEL
-from ui.firmware_studio import MicroPythonFirmwareStudio
+from app_controller import MicroPythonFirmwareStudio
 
 
 def cleanup(*args) -> None:
