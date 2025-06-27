@@ -20,7 +20,7 @@ class FramePlugIns(CTkFrame):
         super().__init__(master, *args, **kwargs)
         debug('Create PlugIns Frame')
 
-        self.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        self.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
         self.grid_columnconfigure(0, weight=1)
 
         self.label = CTkLabel(self, text='PlugIns')

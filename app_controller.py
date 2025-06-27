@@ -1,7 +1,7 @@
 from glob import glob
 from serial.tools import list_ports
 from logging import getLogger, debug, info, error
-from os.path import expanduser
+from os.path import expanduser, basename
 from customtkinter import CTkButton, CTkFrame
 from tkinter import filedialog, Event
 from webbrowser import open_new
@@ -68,6 +68,10 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.information.mac_info_btn.pack_forget()
         self.information.flash_status_btn.pack_forget()
 
+        # Erase Device
+        self.erase_device = FrameEraseDevice(self)
+        self.erase_device.erase_btn.configure(command=lambda: self._esptool_command("erase_flash"))
+
         # PlugIns
         self.plugins = FramePlugIns(self)
 
@@ -77,10 +81,6 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         self.plugins.mp_version_btn.pack_forget()
         self.plugins.mp_structure_btn.pack_forget()
-
-        # Erase Device
-        self.erase_device = FrameEraseDevice(self)
-        self.erase_device.erase_btn.configure(command=lambda: self._esptool_command("erase_flash"))
 
         # Flash Firmware
         self.flash_firmware = FrameFirmwareFlash(self)
@@ -213,7 +213,7 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         :return: None
         """
-        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device, self.flash_firmware)
+        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device)
 
         buttons = [
             widget
@@ -225,13 +225,15 @@ class MicroPythonFirmwareStudio(BaseUI):
         for button in buttons:
             button.configure(state='disabled')
 
+        self.flash_firmware.flash_btn.configure(state='disabled')
+
     def _enable_buttons(self) -> None:
         """
         Enables specific UI buttons by changing their state to 'normal'.
 
         :return: None
         """
-        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device, self.flash_firmware)
+        frames: Tuple[CTkFrame, ...] = (self.information, self.plugins, self.erase_device)
 
         buttons = [
             widget
@@ -242,6 +244,8 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         for button in buttons:
             button.configure(state='normal')
+
+        self.flash_firmware.flash_btn.configure(state='normal')
 
     def _search_devices(self) -> None:
         """
@@ -363,6 +367,7 @@ class MicroPythonFirmwareStudio(BaseUI):
         if file_path:
             self.__selected_firmware = file_path
             self.flash_firmware.firmware_checkbox.select()
+            self.flash_firmware.firmware_btn.configure(text=str(basename(file_path)[:15]))
         else:
             self.__selected_firmware = None
             self.flash_firmware.firmware_checkbox.deselect()
