@@ -59,12 +59,10 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         # Device Information
         self.information = FrameDeviceInformation(self)
-
         self.information.chip_info_btn.configure(command=lambda: self._esptool_command("chip_id"))
         self.information.memory_info_btn.configure(command=lambda: self._esptool_command("flash_id"))
         self.information.mac_info_btn.configure(command=lambda: self._esptool_command("read_mac"))
         self.information.flash_status_btn.configure(command=lambda: self._esptool_command("read_flash_status"))
-
         self.information.mac_info_btn.pack_forget()
         self.information.flash_status_btn.pack_forget()
 
@@ -74,17 +72,13 @@ class MicroPythonFirmwareStudio(BaseUI):
 
         # PlugIns
         self.plugins = FramePlugIns(self)
-
         self.plugins.mp_debug_btn.configure(command=self._handler_toplevel_serial_debug)
         self.plugins.mp_version_btn.configure(command=self._get_version)
         self.plugins.mp_structure_btn.configure(command=self._get_structure)
-
-        self.plugins.mp_version_btn.pack_forget()
-        self.plugins.mp_structure_btn.pack_forget()
+        self.plugins.grid_remove()
 
         # Flash Firmware
         self.flash_firmware = FrameFirmwareFlash(self)
-
         self.flash_firmware.expert_mode.configure(command=self.toggle_expert_mode)
         self.flash_firmware.chip_option.configure(command=self._set_chip)
         self.flash_firmware.firmware_btn.configure(command=self._handle_firmware_selection)
@@ -94,7 +88,6 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.flash_firmware.baudrate_checkbox.select()
         self.flash_firmware.sector_input.bind("<KeyRelease>", self._handle_sector_input)
         self.flash_firmware.flash_btn.configure(command=self._flash_firmware_command)
-
         self.flash_firmware.flash_mode_label.grid_remove()
         self.flash_firmware.flash_mode_option.grid_remove()
         self.flash_firmware.flash_mode_info.grid_remove()
@@ -112,12 +105,12 @@ class MicroPythonFirmwareStudio(BaseUI):
         self.console = FrameConsole(self)
         self.console.console_text.bind("<Key>", BaseUI._block_text_input)
 
-        debug('Searching for USB devices')
         # search for devices on the start
+        debug('Searching for USB devices')
         self._search_devices()
 
-        debug('Starting console queue poll')
         # poll the console queue for new lines
+        debug('Starting console queue poll')
         self._poll_console_queue()
 
     def open_url(self, event: Event) -> None:
@@ -144,8 +137,7 @@ class MicroPythonFirmwareStudio(BaseUI):
             self.__expert_mode = True
             self.information.mac_info_btn.pack(padx=10, pady=5)
             self.information.flash_status_btn.pack(padx=10, pady=5)
-            self.plugins.mp_version_btn.pack(padx=10, pady=5)
-            self.plugins.mp_structure_btn.pack(padx=10, pady=5)
+            self.plugins.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
             self.flash_firmware.flash_mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
             self.flash_firmware.flash_mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
             self.flash_firmware.flash_mode_info.grid(row=5, column=3, columnspan=3, padx=10, pady=5, sticky="w")
@@ -163,8 +155,7 @@ class MicroPythonFirmwareStudio(BaseUI):
             self.__expert_mode = False
             self.information.mac_info_btn.pack_forget()
             self.information.flash_status_btn.pack_forget()
-            self.plugins.mp_version_btn.pack_forget()
-            self.plugins.mp_structure_btn.pack_forget()
+            self.plugins.grid_remove()
             self.flash_firmware.flash_mode_label.grid_remove()
             self.flash_firmware.flash_mode_option.grid_remove()
             self.flash_firmware.flash_mode_info.grid_remove()
